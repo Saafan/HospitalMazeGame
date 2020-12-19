@@ -1,6 +1,13 @@
 #pragma once
 #include "Renderer.h"
 
+struct vec3
+{
+	float x = 0.0f;
+	float y = 0.0f;
+	float z = 0.0f;
+};
+
 enum class Primitive
 {
 	Cube = 0,
@@ -33,7 +40,7 @@ public:
 
 	void Scale(float f_x, float f_y, float f_z);
 
-	void Rotate(float x, float y, float z);
+	void Rotate(float x, float y, float z, float centerX = 0.0f, float centerY = 0.0f, float centerZ = 0.0f);
 
 	Primitive GetPrimitive() const { return prim; }
 	std::string GetPrimitveString();
@@ -60,11 +67,14 @@ public:
 	std::string id = "0";
 	bool uniformScale = false;
 	bool collider = false;
+	bool local = false;
 
 	std::vector<float> position{ 0.0f, 0.0f, 0.0f };
 	std::vector<float> scale{ 1.0f, 1.0f, 1.0f };
 	std::vector<float> rotate{ 0.0f, 0.0f, 0.0f };
 	std::vector<float> groupTrans{0.0f, 0.0f, 0.0f};
+	std::vector<float> groupRotate{0.0f, 0.0f, 0.0f};
+	std::vector<float> groupCenter{0.0f, 0.0f, 0.0f};
 
 	Color color;
 

@@ -10,32 +10,20 @@
 #include "Model.h"
 #include "Object.h"
 #include "ModelsGenerator.h"
+#include "Randomize.h"
 #include <math.h>
-#include <map>
 
 std::vector<Object> objs;
-
-std::vector<std::string> groups
-{
-	"Character",
-	"Cubes",
-	"Cones",
-};
 
 std::vector<bool> modelExpand(objs.size(), false);
 std::vector<float[3]> modelTrans(objs.size());
 
 bool backup = false;
 
-struct vec3
-{
-	float x = 0.0f;
-	float y = 0.0f;
-	float z = 0.0f;
-};
+
 
 vec3 cameraPos;
-vec3 cameraFront;
+vec3 cameraCenter;
 
 int WIDTH = 1100;
 int HEIGHT = 950;
@@ -68,7 +56,7 @@ void SetupCamera()
 	cameraPos.x = std::sin(angle * 3.14f / 180.0f) * radius;
 	cameraPos.z = std::cos(angle * 3.14f / 180.0f) * radius;
 
-	gluLookAt(cameraPos.x + 1.0, cameraPos.y + 3.0, cameraPos.z + 2.8, cameraFront.x, cameraFront.y, cameraFront.z, 0.0f, 1.0f, 0.0f);
+	gluLookAt(cameraPos.x + 1.0, cameraPos.y + 3.0, cameraPos.z + 2.8, cameraCenter.x, cameraCenter.y, cameraCenter.z, 0.0f, 1.0f, 0.0f);
 }
 
 std::vector<Model> models;
@@ -76,7 +64,6 @@ std::vector<Model> models;
 
 void SetupLights()
 {
-
 	GLfloat ambient[] = { 0.7f, 0.7f, 0.7, 1.0f };
 	GLfloat diffuse[] = { 0.6f, 0.6f, 0.6, 1.0f };
 	GLfloat specular[] = { 1.0f, 1.0f, 1.0, 1.0f };
@@ -95,12 +82,16 @@ void SetupLights()
 
 void SortObjects()
 {
-	objs.clear();
-	for (size_t i = 0; i < groups.size(); i++)
-		objs.push_back(Object(groups.at(i)));
+	for (auto& objOfGroup : objs)
+		objOfGroup.obj.clear();
+
 	for (auto& model : models)
 		if (model.group != -1)
+		{
 			objs.at(model.group).obj.push_back(&model);
+			model.groupCenter = objs.at(model.group).center;
+			model.groupTrans = objs.at(model.group).transGroup;
+		}
 }
 
 void ShowModelAttributes(Model& model, std::string name)
@@ -200,8 +191,13 @@ void ShowModelAttributes(Model& model, std::string name)
 		if (ImGui::Button(std::string("Delete " + model.id + " from Group").c_str()))
 		{
 			model.group = -1;
+
+			model.TranslateAccum(model.groupTrans.at(0), model.groupTrans.at(1), model.groupTrans.at(2));
+			model.groupCenter.at(0) = model.groupCenter.at(1) = model.groupCenter.at(2) = 0.0f;
+			model.groupTrans.at(0) = model.groupTrans.at(1) = model.groupTrans.at(2) = 0.0f;
 			SortObjects();
 		}
+
 		ImGui::Spacing();
 	}
 }
@@ -209,6 +205,7 @@ void ShowModelAttributes(Model& model, std::string name)
 
 void RenderIMGUI()
 {
+
 	static bool showCode = false;
 	ImGui::Begin("3D Editor");
 
@@ -219,12 +216,12 @@ void RenderIMGUI()
 		if (ImGui::Button("Reset Camera Position"))
 		{
 			cameraPos.x = cameraPos.y = cameraPos.z = 0;
-			cameraFront.x = cameraFront.y = cameraFront.z = 0;
+			cameraCenter.x = cameraCenter.y = cameraCenter.z = 0;
 			angle = 0.0f;
 			radius = 1.5f;
 		}
 		ImGui::DragFloat3("Camera Eye", &cameraPos.x, 0.1f);
-		ImGui::DragFloat3("Camera Center", &cameraFront.x, 0.1f);
+		ImGui::DragFloat3("Camera Center", &cameraCenter.x, 0.1f);
 	}
 
 	if (ImGui::CollapsingHeader("Light Settings"))
@@ -237,7 +234,6 @@ void RenderIMGUI()
 			lightPos[1] = 10.0f;
 			lightPos[2] = 7.5f;
 		}
-
 		ImGui::ColorEdit3("Light Color", &lightColor[0]);
 		ImGui::DragFloat3("Light Position", &lightPos[0], 0.1f);
 	}
@@ -300,6 +296,10 @@ void RenderIMGUI()
 		models.push_back(*cube);
 	}
 
+	ImGui::SameLine();
+	if (ImGui::Button("Group"))
+		objs.push_back(Object("Group" + std::to_string(Randomize(0, 1000))));
+
 
 	static int i;
 	for (auto& obj : objs)
@@ -308,8 +308,30 @@ void RenderIMGUI()
 		{
 			float arr[]{ 0.1, 0.1, 0.1 };
 			ImGui::DragFloat3(std::string("Position: " + obj.name).c_str(), &obj.transGroup.at(0), 0.1f);
+			ImGui::SameLine();
+			if (ImGui::Button("Reset Position"))
+				obj.transGroup.at(0) = obj.transGroup.at(1) = obj.transGroup.at(2) = 0.0f;
 			obj.Translate();
 			ImGui::DragFloat3(std::string("Rotation: " + obj.name).c_str(), &obj.rotateGroup.at(0), 0.1f);
+			ImGui::SameLine();
+			if (ImGui::Button("Reset Rotation"))
+				obj.rotateGroup.at(0) = obj.rotateGroup.at(1) = obj.rotateGroup.at(2) = 0.0f;
+			obj.Rotate();
+
+			ImGui::Checkbox(std::string("Show Center " + obj.name).c_str(), &obj.showCenter);
+
+			if (obj.showCenter)
+			{
+				ImGui::DragFloat3(std::string("Center Position: " + obj.name).c_str(), &obj.center.at(0), 0.01f);
+				ImGui::Checkbox(std::string("Centralize: " + obj.name).c_str(), &obj.centralize);
+
+				if (obj.centralize)
+					obj.CalculateEstimatedCenter();
+
+				obj.RenderCenter();
+				ImGui::Spacing();
+				ImGui::Spacing();
+			}
 			ImGui::Indent(20);
 			for (const auto& model : obj.obj)
 			{
@@ -323,7 +345,6 @@ void RenderIMGUI()
 		ImGui::Spacing();
 		ImGui::Spacing();
 	}
-
 
 	for (auto& model : models)
 		if (model.group == -1)
@@ -378,7 +399,7 @@ void RenderIMGUI()
 		if (model.GetPrimitive() == Primitive::Cylinder)
 			code << name << ".CreateCylinder(" << (model.size) << ", " << (model.radius) << ", " << (model.modelHeight) << ", " << (model.slices) << ", " << (model.stacks) << ");\n";
 
-		code << name << ".Translate(" << model.position.at(0) + model.groupTrans.at(0) << ", " << model.position.at(1) + model.groupTrans.at(1) << ", " << model.position.at(2) + model.groupTrans.at(2) << ");\n";
+		code << name << ".Translate(" << model.position.at(0) << ", " << model.position.at(1) << ", " << model.position.at(2) << ");\n";
 
 		if (model.scale.at(0) != 1 || model.scale.at(1) != 1 || model.scale.at(2) != 1)
 			code << name << ".Scale(" << model.scale.at(0) << ", " << model.scale.at(1) << ", " << model.scale.at(2) << ");\n";
@@ -474,6 +495,16 @@ void key(unsigned char key, int x, int y)
 	if (key == 'e')
 		cameraPos.y -= 0.1f;
 
+	if (key == 'i')
+		cameraCenter.z -= 0.1f;
+	if (key == 'k')
+		cameraCenter.z += 0.1f;
+
+	if (key == 'j')
+		cameraCenter.x -= 0.1f;
+	if (key == 'l')
+		cameraCenter.x += 0.1f;
+
 	if (key == 't')
 	{
 		angle = -45.11f;
@@ -543,6 +574,27 @@ void WriteHeader()
 	time_t now = time(0);
 	tm* ltm = localtime(&now);
 
+	std::stringstream groupCode;
+	for (size_t i = 0; i < objs.size(); i++)
+	{
+		std::string groupName = objs.at(i).name + std::to_string(i);
+		groupCode << "Object " << groupName << "(\"" << objs.at(i).name << "\");\n";
+
+		if (!objs.at(i).centralize)
+			groupCode << groupName + ".centralize = false;\n";
+
+		if (objs.at(i).center.at(0) == 0 && objs.at(i).center.at(1) == 0 && objs.at(i).center.at(2) == 0)
+			groupCode << groupName + ".SetCenter(" << objs.at(i).center.at(0) << "," << objs.at(i).center.at(1) << "," << objs.at(i).center.at(2) << ");\n";
+
+		if (objs.at(i).transGroup.at(0) == 0 && objs.at(i).transGroup.at(1) == 0 && objs.at(i).transGroup.at(2) == 0)
+			groupCode << groupName + ".SetGroupTranslate(" << objs.at(i).transGroup.at(0) << "," << objs.at(i).transGroup.at(1) << "," << objs.at(i).transGroup.at(2) << ");\n";
+
+		if (objs.at(i).rotateGroup.at(0) == 0 && objs.at(i).rotateGroup.at(1) == 0 && objs.at(i).rotateGroup.at(2) == 0)
+			groupCode << groupName + ".SetGroupRotate(" << objs.at(i).rotateGroup.at(0) << "," << objs.at(i).rotateGroup.at(1) << "," << objs.at(i).rotateGroup.at(2) << ");\n";
+
+		groupCode << "objs" << ".emplace_back(" << groupName << ");\n\n";
+	}
+
 	if (backup)
 	{
 		std::stringstream path;
@@ -553,6 +605,7 @@ void WriteHeader()
 		{
 			myFile << "#pragma once\n#include \"Model.h\"\nvoid GenerateModels(std::vector<Model>& models, std::vector<Object>& objs)\n{\n\n";
 			myFile << "//Backup at: " << 1900 + ltm->tm_year << "-" << ltm->tm_mon << "-" << ltm->tm_mday << " at: " << ltm->tm_hour << ":" << ltm->tm_min << ":" << ltm->tm_sec << "\n\n";
+			myFile << groupCode.str();
 			myFile << code.str();
 			myFile << "}\n";
 		}
@@ -563,6 +616,7 @@ void WriteHeader()
 		if (myFile.is_open())
 		{
 			myFile << "#pragma once\n#include \"Model.h\"\nvoid GenerateModels(std::vector<Model>& models, std::vector<Object>& objs)\n{\n\n";
+			myFile << groupCode.str();
 			myFile << code.str();
 			myFile << "}\n";
 		}
@@ -577,6 +631,9 @@ void WriteHeaderBackup()
 
 int main(int argc, char** argv)
 {
+	srand(time(0));
+	float R = (float)((rand() % 100) / 100.0f);
+	std::cout << R << std::endl;
 	glutInit(&argc, argv);
 	glutInitDisplayMode(GLUT_DEPTH | GLUT_DOUBLE | GLUT_RGBA);
 	glutInitWindowPosition(100, 100);
@@ -605,11 +662,6 @@ int main(int argc, char** argv)
 	gluOrtho2D(0, WIDTH, 0, HEIGHT);
 
 	glutDisplayFunc(glut_display_func);
-
-
-	for (size_t i = 0; i < groups.size(); i++)
-		objs.push_back(Object(groups.at(i)));
-
 
 	glutKeyboardFunc(key);
 	glutSpecialFunc(key);

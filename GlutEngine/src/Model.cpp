@@ -30,7 +30,7 @@ void Model::Scale(float f_x, float f_y, float f_z)
 	scale.at(2) = f_z;
 }
 
-void Model::Rotate(float x, float y, float z)
+void Model::Rotate(float x, float y, float z, float centerX, float centerY, float centerZ)
 {
 	rotate.at(0) = x;
 	rotate.at(1) = y;
@@ -116,7 +116,6 @@ void Model::CreateCylinder(float baseRadius, float topRadius, float height, floa
 	qobj = gluNewQuadric();
 	gluQuadricDrawStyle(qobj, GLU_FILL);
 	gluCylinder(qobj, size, radius, height, slices, stacks);
-
 }
 
 void Model::CreateCone(float base, float height, int slices, int stacks)
@@ -145,12 +144,15 @@ void Model::Render()
 
 	glColor3f(color.R, color.G, color.B);
 
-
-	glTranslatef(position.at(0) + groupTrans.at(0), position.at(1) + groupTrans.at(1), position.at(2) + groupTrans.at(2));
+	glTranslatef(groupCenter.at(0), groupCenter.at(1), groupCenter.at(2));
 
 	glRotatef(rotate.at(0), 1, 0, 0);
 	glRotatef(rotate.at(1), 0, 1, 0);
 	glRotatef(rotate.at(2), 0, 0, 1);
+
+	glTranslatef(-groupCenter.at(0), -groupCenter.at(1), -groupCenter.at(2));
+
+	glTranslatef(position.at(0) + groupTrans.at(0), position.at(1) + groupTrans.at(1), position.at(2) + groupTrans.at(2));
 
 	glScalef(scale.at(0), scale.at(1), scale.at(2));
 
