@@ -12,6 +12,7 @@
 #include "ModelsGenerator.h"
 #include "Randomize.h"
 #include <math.h>
+#include "UI.h"
 
 std::vector<Object> objs;
 
@@ -19,11 +20,17 @@ std::vector<bool> modelExpand(objs.size(), false);
 std::vector<float[3]> modelTrans(objs.size());
 
 bool backup = false;
+bool updateData = true;
 
-
-
+Model* lastHit = nullptr;
 vec3 cameraPos;
 vec3 cameraCenter;
+
+int coinsVal = 0;
+int scoreVal = 0;
+UI score({ 0.0f, 0.0f, 0.0f }, "Score: ", &scoreVal, { 1.2f, 2.2f, 0.0f });
+UI coins({ 0.0f, 0.0f, 0.0f }, "Coins: ", &coinsVal, { 1.2f, 2.2f, 0.0f });
+UI helath;
 
 int WIDTH = 1100;
 int HEIGHT = 950;
@@ -40,6 +47,7 @@ static float lightColor[]{ 1.0f, 1.0f, 1.0f };
 static float lightPos[]{ 5.6f, 10.0f, 7.5f };
 
 void WriteHeader();
+void CheckCoinsCollision();
 
 std::stringstream code;
 
@@ -203,8 +211,28 @@ void ShowModelAttributes(Model& model, std::string name)
 }
 
 
+void CheckAllCollisions()
+{
+	if (lastHit == nullptr)
+		return;
+
+	CheckCoinsCollision();
+
+
+	lastHit = nullptr;
+}
+
+void RenderUI()
+{
+	coins.Render();
+}
+
 void RenderIMGUI()
 {
+
+	CheckAllCollisions();
+
+	RenderUI();
 
 	static bool showCode = false;
 	ImGui::Begin("3D Editor");
@@ -221,6 +249,16 @@ void RenderIMGUI()
 			radius = 1.5f;
 		}
 		ImGui::DragFloat3("Camera Eye", &cameraPos.x, 0.1f);
+		ImGui::DragFloat3("Camera Center", &cameraCenter.x, 0.1f);
+	}
+
+	if (ImGui::CollapsingHeader("UI"))
+	{
+		if (ImGui::Button("Reset Camera Position"))
+		{
+
+		}
+		ImGui::DragFloat3("Camera Eye", &score.pos.at(0), 0.1f);
 		ImGui::DragFloat3("Camera Center", &cameraCenter.x, 0.1f);
 	}
 
@@ -434,7 +472,8 @@ void RenderIMGUI()
 		ImGui::End();
 	}
 
-	WriteHeader();
+	if (updateData)
+		WriteHeader();
 
 	WIDTH = glutGet(GLUT_WINDOW_WIDTH);
 	HEIGHT = glutGet(GLUT_WINDOW_HEIGHT);
@@ -467,15 +506,15 @@ bool ModelsIntresect(Model& model1, Model& model2, float x, float z)
 	return false;
 }
 
-bool CheckCollision(float x, float z)
+Model* CheckCollision(float x, float z)
 {
 	for (auto& model : models)
 		if (model.collider)
 			for (auto& modelCollision : models)
 				if (modelCollision.collider && &modelCollision != &model && model.group != -1)
 					if (ModelsIntresect(model, modelCollision, x, z) && objs.at(model.group).name == "Character")
-						return true;
-	return false;
+						return &modelCollision;
+	return nullptr;
 }
 
 void key(unsigned char key, int x, int y)
@@ -524,6 +563,18 @@ void key(unsigned char key, int x, int y)
 	}
 }
 
+void CheckCoinsCollision()
+{
+	if (objs.at(lastHit->group).name.substr(0, 5) == "Coins")
+	{
+		for (size_t i = 0; i < objs.at(lastHit->group).obj.size(); i++)
+			objs.at(lastHit->group).obj.at(i)->TranslateAccum(-10000, -10000, -10000);
+
+		std::cout << "Hit coins!!" << std::endl;
+		coinsVal++;
+	}
+}
+
 void key(int key, int x, int y)
 {
 	bool pass = false;
@@ -545,7 +596,30 @@ void key(int key, int x, int y)
 					else if (key == GLUT_KEY_RIGHT)
 						model.TranslateAccum(speed, 0.0f, 0.0f);
 			}
+
+	if (!pass)
+	{
+		Model* collidedWith = nullptr;
+		collidedWith = CheckCollision(0.0f, limit);
+		if (collidedWith == nullptr)
+			collidedWith = CheckCollision(0.0f, -limit);
+		if (collidedWith == nullptr)
+			collidedWith = CheckCollision(limit, 0.0f);
+		if (collidedWith == nullptr)
+			collidedWith = CheckCollision(-limit, 0.0f);
+		if (collidedWith != nullptr)
+			if (collidedWith->group != -1)
+			{
+				std::cout << objs.at(collidedWith->group).name << std::endl;
+				lastHit = collidedWith;
+			}
+	}
+	else
+		lastHit = nullptr;
+
+
 }
+
 
 void glut_display_func()
 {
