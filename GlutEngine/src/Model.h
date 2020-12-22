@@ -68,6 +68,7 @@ public:
 	bool uniformScale = false;
 	bool collider = false;
 	bool local = false;
+	bool selected = false;
 
 	std::vector<float> position{ 0.0f, 0.0f, 0.0f };
 	std::vector<float> scale{ 1.0f, 1.0f, 1.0f };

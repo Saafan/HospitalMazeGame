@@ -149,11 +149,13 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="src\Gizmo.h" />
     <ClInclude Include="src\Model.h" />
     <ClInclude Include="src\ModelsGenerator.h" />
     <ClInclude Include="src\Object.h" />
     <ClInclude Include="src\Randomize.h" />
     <ClInclude Include="src\Renderer.h" />
+    <ClInclude Include="src\UI.h" />
     <ClInclude Include="vendor\imgui\imconfig.h" />
     <ClInclude Include="vendor\imgui\imgui.h" />
     <ClInclude Include="vendor\imgui\imgui_impl_glut.h" />
@@ -165,11 +167,13 @@
     <ClInclude Include="vendor\stb_image\stb_image.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\Gizmo.cpp" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\Model.cpp" />
     <ClCompile Include="src\Object.cpp" />
     <ClCompile Include="src\Randomize.cpp" />
     <ClCompile Include="src\Texture.cpp" />
+    <ClCompile Include="src\UI.cpp" />
     <ClCompile Include="vendor\imgui\imgui.cpp" />
     <ClCompile Include="vendor\imgui\imgui_demo.cpp" />
     <ClCompile Include="vendor\imgui\imgui_draw.cpp" />

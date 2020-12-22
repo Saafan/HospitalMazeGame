@@ -141,8 +141,10 @@ void Model::Render()
 {
 	glPushMatrix();
 
-
-	glColor3f(color.R, color.G, color.B);
+	if (!selected)
+		glColor3f(color.R, color.G, color.B);
+	else
+		glColor3f(0.31f, 0.98f, 0.48f);
 
 	glTranslatef(groupCenter.at(0), groupCenter.at(1), groupCenter.at(2));
 

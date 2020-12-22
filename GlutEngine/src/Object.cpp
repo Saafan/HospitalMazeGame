@@ -4,6 +4,7 @@ Object::Object(std::string name)
 {
 	this->name = name;
 	centerCube.CreateCube(0.2f);
+
 }
 
 

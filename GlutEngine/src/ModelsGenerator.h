@@ -24,7 +24,7 @@ objs.emplace_back(Group8002);
  // Cube0 of Group Character
 Model Cube0;
 Cube0.CreateCube(0.5);
-Cube0.Translate(-0.01, 0, -0.6);
+Cube0.Translate(-0.61, 0, -0.2);
 Cube0.SetColor(0.08176, 0.04037, 0.3922);
 Cube0.group = 0;
 models.emplace_back(Cube0);
@@ -32,7 +32,7 @@ models.emplace_back(Cube0);
  // Sphere1 of Group Character
 Model Sphere1;
 Sphere1.CreateSphere(0.5, 10, 10);
-Sphere1.Translate(0.02, 0.49, -0.6);
+Sphere1.Translate(-0.58, 0.49, -0.2);
 Sphere1.SetColor(0.9902, 0.02427, 0.02427);
 Sphere1.group = 0;
 models.emplace_back(Sphere1);
@@ -40,7 +40,7 @@ models.emplace_back(Sphere1);
  // CollisionBox2 of Group Character
 Model CollisionBox2;
 CollisionBox2.CreateWireCube(0.5);
-CollisionBox2.Translate(0.04, 0.17, -0.58);
+CollisionBox2.Translate(-0.56, 0.17, -0.18);
 CollisionBox2.Scale(1.64, 2.5, 1.64);
 CollisionBox2.collider = true;
 CollisionBox2.group = 0;
@@ -49,18 +49,18 @@ models.emplace_back(CollisionBox2);
  // CollisionBox3 of Group Coins
 Model CollisionBox3;
 CollisionBox3.CreateWireCube(0.5);
-CollisionBox3.Translate(-1e+04, -1e+04, -1e+04);
-CollisionBox3.Scale(1.05, 1.85, 0.22);
+CollisionBox3.Translate(-3.01, -0.02, 0);
+CollisionBox3.Scale(0.1, 1, 1);
 CollisionBox3.collider = true;
 CollisionBox3.group = 1;
 models.emplace_back(CollisionBox3);
 
  // Sphere4 of Group Coins
 Model Sphere4;
-Sphere4.CreateSphere(0.5, 28, 10);
-Sphere4.Translate(-1e+04, -1e+04, -1e+04);
-Sphere4.Scale(0.53, 0.97, 0.13);
-Sphere4.SetColor(0.9118, 1, 0);
+Sphere4.CreateSphere(0.5, 10, 10);
+Sphere4.Translate(-3.02, 0, 0);
+Sphere4.Scale(-0.05, 0.53, 0.53);
+Sphere4.SetColor(1, 0.9405, 0);
 Sphere4.group = 1;
 models.emplace_back(Sphere4);
 

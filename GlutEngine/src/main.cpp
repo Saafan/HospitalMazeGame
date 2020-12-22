@@ -1,6 +1,3 @@
-#include <imgui/imgui.h>
-#include <imgui/imgui_impl_opengl2.h>
-#include <imgui/imgui_impl_glut.h>
 #include <algorithm>
 #include <sstream>
 #include <iomanip>
@@ -20,7 +17,7 @@ std::vector<bool> modelExpand(objs.size(), false);
 std::vector<float[3]> modelTrans(objs.size());
 
 bool backup = false;
-bool updateData = true;
+bool updateData = false;
 
 Model* lastHit = nullptr;
 vec3 cameraPos;
@@ -28,14 +25,15 @@ vec3 cameraCenter;
 
 int coinsVal = 0;
 int scoreVal = 0;
-UI score({ 0.0f, 0.0f, 0.0f }, "Score: ", &scoreVal, { 1.2f, 2.2f, 0.0f });
-UI coins({ 0.0f, 0.0f, 0.0f }, "Coins: ", &coinsVal, { 1.2f, 2.2f, 0.0f });
-UI helath;
+int healthVal = 100;
+UI coins({ 1.00f, 0.0f, 0.0f }, "Coins: ", & coinsVal, { 1.2f, 2.2f, 0.0f });
+UI score({ 0.0f, 0.0f, 0.0f }, "Score: ", & scoreVal, { 1.2f, 2.05f, 0.0f });
+UI health({ 1.00f, 0.0f, 0.0f }, "Health: ", & healthVal, { 1.2f, 1.90f, 0.0f });
 
 int WIDTH = 1100;
 int HEIGHT = 950;
 
-int mouseX, mouseY = 0;
+float mouseDeltX, mouseDeltY = 0;
 
 float radius = 1.5f;
 float angle = -45.11f;
@@ -91,7 +89,8 @@ void SetupLights()
 void SortObjects()
 {
 	for (auto& objOfGroup : objs)
-		objOfGroup.obj.clear();
+		if (!objOfGroup.obj.empty())
+			objOfGroup.obj.clear();
 
 	for (auto& model : models)
 		if (model.group != -1)
@@ -106,6 +105,7 @@ void ShowModelAttributes(Model& model, std::string name)
 {
 	if (ImGui::CollapsingHeader(name.c_str()))
 	{
+		ImGui::Checkbox(std::string("Select " + model.id).c_str(), &model.selected);
 		ImGui::Checkbox(std::string("Uniform Scale " + model.id).c_str(), &model.uniformScale);
 		ImGui::ColorEdit3(std::string("Color " + model.id).c_str(), &model.color.R);
 		ImGui::DragFloat3(std::string("Position " + model.id).c_str(), &model.position.at(0), 0.01f);
@@ -215,27 +215,54 @@ void CheckAllCollisions()
 {
 	if (lastHit == nullptr)
 		return;
-
 	CheckCoinsCollision();
-
-
 	lastHit = nullptr;
 }
 
 void RenderUI()
 {
 	coins.Render();
+	score.Render();
+	health.Render();
+}
+
+void ClearSelected()
+{
+	for (auto& model : models)
+		model.selected = false;
+}
+
+void SelectUnSelectGroup(int i)
+{
+	for (auto& model : models)
+		if (model.group == i)
+			model.selected = !model.selected;
+}
+
+void MouseMove()
+{
+	ImGuiIO& io = ImGui::GetIO();
+	mouseDeltX = io.MouseDelta.x / 100.0f;
+	mouseDeltY = io.MouseDelta.y / 100.0f;
+	if (io.MouseDown[0] && !ImGui::IsAnyWindowHovered() && !ImGui::IsAnyWindowFocused())
+		for (auto& model : models)
+			if (model.selected)
+				model.TranslateAccum(mouseDeltX, 0, mouseDeltY);
 }
 
 void RenderIMGUI()
 {
-
 	CheckAllCollisions();
+	MouseMove();
 
 	RenderUI();
 
 	static bool showCode = false;
 	ImGui::Begin("3D Editor");
+
+
+	if (ImGui::Button("Unselect All"))
+		ClearSelected();
 
 	ImGui::Checkbox("Show Code", &showCode);
 
@@ -279,6 +306,8 @@ void RenderIMGUI()
 	ImGui::Spacing();
 	ImGui::Spacing();
 	ImGui::Spacing();
+
+
 
 	if (ImGui::Button("Cube"))
 	{
@@ -339,9 +368,17 @@ void RenderIMGUI()
 		objs.push_back(Object("Group" + std::to_string(Randomize(0, 1000))));
 
 
+
+
 	static int i;
 	for (auto& obj : objs)
 	{
+
+		if (ImGui::Button(std::string("(Un)Select " + obj.name).c_str()))
+			if (!obj.obj.empty())
+				SelectUnSelectGroup(obj.obj.at(0)->group);
+
+		ImGui::SameLine();
 		if (ImGui::CollapsingHeader(std::string("Group " + obj.name).c_str()))
 		{
 			float arr[]{ 0.1, 0.1, 0.1 };
@@ -355,6 +392,20 @@ void RenderIMGUI()
 			if (ImGui::Button("Reset Rotation"))
 				obj.rotateGroup.at(0) = obj.rotateGroup.at(1) = obj.rotateGroup.at(2) = 0.0f;
 			obj.Rotate();
+
+			if (ImGui::Button(std::string("Duplicate Group " + obj.name).c_str()))
+			{
+				for (auto& model : obj.obj)
+				{
+					Model newModel = *model;
+					newModel.group = objs.size();
+					newModel.id = std::to_string(model->numofModels++);
+					models.push_back(newModel);
+				}
+				objs.push_back(Object(obj.name + std::to_string(Randomize(0, 1000))));
+				SortObjects();
+				break;
+			}
 
 			ImGui::Checkbox(std::string("Show Center " + obj.name).c_str(), &obj.showCenter);
 
@@ -371,12 +422,15 @@ void RenderIMGUI()
 				ImGui::Spacing();
 			}
 			ImGui::Indent(20);
-			for (const auto& model : obj.obj)
+			for (size_t j = 0; j < obj.obj.size(); j++)
 			{
-				if (model == nullptr)
-					return;
-				std::string name = model->GetPrimitveString() + std::to_string(i++);
-				ShowModelAttributes(*model, name);
+				if (obj.obj.size() == j)
+				{
+					SortObjects();
+					break;
+				}
+				std::string name = obj.obj.at(j)->GetPrimitveString() + std::to_string(i++);
+				ShowModelAttributes(*obj.obj.at(j), name);
 			}
 			ImGui::Unindent(20);
 		}
@@ -502,7 +556,6 @@ bool ModelsIntresect(Model& model1, Model& model2, float x, float z)
 		if (std::abs(model1.position.at(1) - model2.position.at(1)) < model1.scale.at(1) / 4 + model2.scale.at(1) / 4)
 			if (std::abs((model1.position.at(2) + z) - model2.position.at(2)) < model1.scale.at(2) / 4 + model2.scale.at(2) / 4)
 				return true;
-
 	return false;
 }
 
@@ -519,6 +572,10 @@ Model* CheckCollision(float x, float z)
 
 void key(unsigned char key, int x, int y)
 {
+	ImGuiIO& io = ImGui::GetIO();
+	io.AddInputCharacter(key);
+
+
 	if (key == 'w')
 		radius -= 0.5f;
 	if (key == 's')
@@ -543,6 +600,16 @@ void key(unsigned char key, int x, int y)
 		cameraCenter.x -= 0.1f;
 	if (key == 'l')
 		cameraCenter.x += 0.1f;
+
+	if (key == 'z')
+		for (auto& model : models)
+			if (model.selected)
+				model.TranslateAccum(0, 0.1, 0);
+
+	if (key == 'x')
+		for (auto& model : models)
+			if (model.selected)
+				model.TranslateAccum(0, -0.1, 0);
 
 	if (key == 't')
 	{
@@ -577,6 +644,10 @@ void CheckCoinsCollision()
 
 void key(int key, int x, int y)
 {
+
+	ImGuiIO& io = ImGui::GetIO();
+	io.AddInputCharacter(key + 256);
+
 	bool pass = false;
 	const float limit = 0.2f;
 	const float speed = 0.1f;
@@ -703,6 +774,8 @@ void WriteHeaderBackup()
 	WriteHeader();
 }
 
+
+
 int main(int argc, char** argv)
 {
 	srand(time(0));
@@ -744,7 +817,6 @@ int main(int argc, char** argv)
 	std::atexit(WriteHeaderBackup);
 
 	glutMainLoop();
-
 
 	// Cleanup
 	ImGui_ImplOpenGL2_Shutdown();
