@@ -39,7 +39,6 @@ float radius = 1.5f;
 float angle = -45.11f;
 float elapsedTime = 0.0f;
 
-float gameOverTime = 10;
 
 static float lightColor[]{ 1.0f, 1.0f, 1.0f };
 static float lightPos[]{ 5.6f, 10.0f, 7.5f };
@@ -66,6 +65,7 @@ void SetupCamera()
 }
 
 std::vector<Model> models;
+std::vector<std::vector<Model>> modelsHistory;
 
 
 void SetupLights()
@@ -254,6 +254,7 @@ void RenderIMGUI()
 {
 	CheckAllCollisions();
 	MouseMove();
+
 
 	RenderUI();
 
@@ -570,11 +571,26 @@ Model* CheckCollision(float x, float z)
 	return nullptr;
 }
 
+static int historyNum = 0;
 void key(unsigned char key, int x, int y)
 {
 	ImGuiIO& io = ImGui::GetIO();
 	io.AddInputCharacter(key);
+	if (key == 'n')
+		if (modelsHistory.size() - historyNum > 0)
+		{
+			historyNum++;
+			models = modelsHistory[modelsHistory.size() - historyNum];
+		}
 
+
+	//#TODO Work on The Redo 
+	if (key == 'm')
+		if (historyNum > 1)
+		{
+			historyNum--;
+			models = modelsHistory[(modelsHistory.size() - historyNum)];
+		}
 
 	if (key == 'w')
 		radius -= 0.5f;
@@ -768,6 +784,33 @@ void WriteHeader()
 	}
 }
 
+void HistoryTimer(int value)
+{
+	bool same = true;
+
+	//#TODO Optimize to only include the changed
+
+	if (!modelsHistory.empty())
+		for (size_t i = 0; i < (models.size() < modelsHistory.at(modelsHistory.size() - 1).size() ? models.size() : modelsHistory.at(modelsHistory.size() - 1).size()) - 1; i++)
+		{
+			Model& modelHis = modelsHistory.at(modelsHistory.size() - 1).at(i);
+			Model& model = models.at(i);
+			for (size_t i = 0; i < model.position.size(); i++)
+				if (model.position.at(i) != modelHis.position.at(i) || model.groupTrans.at(i) != modelHis.groupTrans.at(i) || model.scale.at(i) != modelHis.scale.at(i) || model.rotate.at(i) != modelHis.rotate.at(i))
+					same = false;
+		}
+	else
+		same = false;
+
+	if (!same)
+	{
+		modelsHistory.erase(modelsHistory.end() - historyNum, modelsHistory.end());
+		historyNum = 0;
+		modelsHistory.push_back(models);
+	}
+	glutTimerFunc(2000, HistoryTimer, 2000);
+}
+
 void WriteHeaderBackup()
 {
 	backup = true;
@@ -813,6 +856,7 @@ int main(int argc, char** argv)
 	glutKeyboardFunc(key);
 	glutSpecialFunc(key);
 	Generate(100);
+	glutTimerFunc(10, HistoryTimer, 10);
 	SortObjects();
 	std::atexit(WriteHeaderBackup);
 
