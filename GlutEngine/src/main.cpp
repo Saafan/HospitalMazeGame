@@ -16,6 +16,8 @@ std::vector<Object> objs;
 std::vector<bool> modelExpand(objs.size(), false);
 std::vector<float[3]> modelTrans(objs.size());
 
+std::vector<bool> views{true, false, false};
+
 bool backup = false;
 bool updateData = false;
 
@@ -242,8 +244,21 @@ void SelectUnSelectGroup(int i)
 void MouseMove()
 {
 	ImGuiIO& io = ImGui::GetIO();
-	mouseDeltX = io.MouseDelta.x / 100.0f;
-	mouseDeltY = io.MouseDelta.y / 100.0f;
+	if (views[0])
+	{
+		mouseDeltX = io.MouseDelta.x / 100.0f;
+		mouseDeltY = io.MouseDelta.y / 100.0f;
+	}
+	else if (views[1])
+	{
+		mouseDeltX = -io.MouseDelta.y / 100.0f;
+		mouseDeltY = io.MouseDelta.x / 100.0f;
+	}
+	else if (views[2])
+	{
+		mouseDeltX = -io.MouseDelta.x / 100.0f;
+		mouseDeltY = -io.MouseDelta.y / 100.0f;
+	}
 	if (io.MouseDown[0] && !ImGui::IsAnyWindowHovered() && !ImGui::IsAnyWindowFocused())
 		for (auto& model : models)
 			if (model.selected)
@@ -592,20 +607,20 @@ void key(unsigned char key, int x, int y)
 			models = modelsHistory[(modelsHistory.size() - historyNum)];
 		}
 
-	if (key == 'w')
-		radius -= 0.5f;
-	if (key == 's')
-		radius += 0.5f;
+	//if (key == 'w')
+	//	radius -= 0.5f;
+	//if (key == 's')
+	//	radius += 0.5f;
+	//
+	//if (key == 'a')
+	//	angle -= 5.0f;
+	//if (key == 'd')
+	//	angle += 5.0f;
 
-	if (key == 'a')
-		angle -= 5.0f;
-	if (key == 'd')
-		angle += 5.0f;
-
-	if (key == 'q')
-		cameraPos.y += 0.1f;
-	if (key == 'e')
-		cameraPos.y -= 0.1f;
+	//if (key == 'q')
+	//	cameraPos.y += 0.1f;
+	//if (key == 'e')
+	//	cameraPos.y -= 0.1f;
 
 	if (key == 'i')
 		cameraCenter.z -= 0.1f;
@@ -627,22 +642,34 @@ void key(unsigned char key, int x, int y)
 			if (model.selected)
 				model.TranslateAccum(0, -0.1, 0);
 
-	if (key == 't')
+	if (key == 'a')
+		radius += 0.5f;
+
+	if (key == 's')
+		radius -= 0.5f;
+	
+	if (key == 'q')
 	{
 		angle = -45.11f;
 		radius = 1.5f;
+		views[0] = true;
+		views[1] = views[2] = false;
 	}
 
-	if (key == 'y')
+	if (key == 'w')
 	{
 		angle = -120.11f;
 		radius = 5.5f;
+		views[1] = true;
+		views[0] = views[2] = false;
 	}
 
-	if (key == 'u')
+	if (key == 'e')
 	{
 		angle = 7.11f;
 		radius = -7.5f;
+		views[2] = true;
+		views[0] = views[1] = false;
 	}
 }
 
@@ -791,7 +818,7 @@ void HistoryTimer(int value)
 	//#TODO Optimize to only include the changed
 
 	if (!modelsHistory.empty())
-		for (size_t i = 0; i < (models.size() < modelsHistory.at(modelsHistory.size() - 1).size() ? models.size() : modelsHistory.at(modelsHistory.size() - 1).size()) - 1; i++)
+		for (size_t i = 0; i < (models.size() < modelsHistory.at(modelsHistory.size() - 1).size() ? models.size() : modelsHistory.at(modelsHistory.size() - 1).size()); i++)
 		{
 			Model& modelHis = modelsHistory.at(modelsHistory.size() - 1).at(i);
 			Model& model = models.at(i);
