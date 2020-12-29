@@ -157,6 +157,10 @@ void Model::Draw3DModel()
 
 void Model::Render()
 {
+
+	if (!visible)
+		return;
+
 	glPushMatrix();
 
 	if (!selected)

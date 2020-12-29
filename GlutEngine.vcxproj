@@ -88,6 +88,7 @@
     <ClCompile Include="GLTexture.cpp" />
     <ClCompile Include="Model_3DS.cpp" />
     <ClCompile Include="src\GLTexture.cpp" />
+    <ClCompile Include="src\LightModel.cpp" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\Model.cpp" />
     <ClCompile Include="src\Model_3DS.cpp" />
@@ -109,6 +110,7 @@
     <ClInclude Include="src\glew.h" />
     <ClInclude Include="src\GLTexture.h" />
     <ClInclude Include="src\glut.h" />
+    <ClInclude Include="src\LightModel.h" />
     <ClInclude Include="src\Model.h" />
     <ClInclude Include="src\ModelsGenerator.h" />
     <ClInclude Include="src\Model_3DS.h" />

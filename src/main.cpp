@@ -16,12 +16,17 @@
 
 #include <math.h>
 #include "UI.h"
+#include "LightModel.h"
 
 std::vector<Object> objs;
 GLTexture tex_ground;
 
 std::vector<bool> modelExpand(objs.size(), false);
 std::vector<float[3]> modelTrans(objs.size());
+
+std::vector<LightModel> lights;
+
+Model sphere;
 
 std::vector<bool> views{ true, false, false };
 
@@ -74,24 +79,14 @@ void SetupCamera()
 }
 
 std::vector<Model> models;
+
 std::vector<std::vector<Model>> modelsHistory;
 
 
 void SetupLights()
 {
-	GLfloat ambient[] = { 0.7f, 0.7f, 0.7, 1.0f };
-	GLfloat diffuse[] = { 0.6f, 0.6f, 0.6, 1.0f };
-	GLfloat specular[] = { 1.0f, 1.0f, 1.0, 1.0f };
-	GLfloat shininess[] = { 50 };
-	glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, ambient);
-	glMaterialfv(GL_FRONT, GL_DIFFUSE, diffuse);
-	glMaterialfv(GL_FRONT, GL_SPECULAR, specular);
-	glMaterialfv(GL_FRONT, GL_SHININESS, shininess);
-
-	GLfloat lightIntensity[] = { lightColor[0], lightColor[1], lightColor[2], 1.0f };
-	GLfloat lightPosition[] = { lightPos[0], lightPos[1], lightPos[2], 0.0f };
-	glLightfv(GL_LIGHT0, GL_POSITION, lightPosition);
-	glLightfv(GL_LIGHT0, GL_DIFFUSE, lightIntensity);
+	for (size_t i = 0; i < lights.size(); i++)
+		lights.at(i).Render();
 }
 
 
@@ -121,11 +116,11 @@ void ShowModelAttributes(Model& model, std::string name)
 
 		if (model.uniformScale)
 		{
-			ImGui::DragFloat(std::string("Scale " + model.id).c_str(), &model.scale.at(0), 0.01f);
+			ImGui::DragFloat(std::string("Scale " + model.id).c_str(), &model.scale.at(0), 0.001f);
 			model.scale.at(2) = model.scale.at(1) = model.scale.at(0);
 		}
 		else
-			ImGui::DragFloat3(std::string("Scale " + model.id).c_str(), &model.scale.at(0), 0.01f);
+			ImGui::DragFloat3(std::string("Scale " + model.id).c_str(), &model.scale.at(0), 0.001f);
 
 		ImGui::DragFloat3(std::string("Rotate " + model.id).c_str(), &model.rotate.at(0), 0.5f);
 
@@ -162,9 +157,9 @@ void ShowModelAttributes(Model& model, std::string name)
 		if (model.GetPrimitive() == Primitive::Model)
 		{
 			static char tempBuf[60] = { 0 };
-			ImGui::InputText("Model Name", tempBuf, IM_ARRAYSIZE(tempBuf));
+			ImGui::InputText(std::string("Model Name " + model.id).c_str(), tempBuf, IM_ARRAYSIZE(tempBuf));
 			ImGui::SameLine();
-			if (ImGui::Button("Apply Path"))	
+			if (ImGui::Button("Apply Path"))
 				model.Assign3DModel("models/" + std::string(tempBuf) + "/" + std::string(tempBuf) + ".3ds");
 		}
 
@@ -269,7 +264,6 @@ void MouseMove()
 }
 
 
-Model tempModel;
 
 void RenderIMGUI()
 {
@@ -315,15 +309,45 @@ void RenderIMGUI()
 	if (ImGui::CollapsingHeader("Light Settings"))
 	{
 		if (ImGui::Button("Reset Light Setup"))
-		{
-			lightColor[0] = lightColor[1] = lightColor[2] = 1.0f;
+			for (size_t i = 0; i < lights.size(); i++)
+				lightColor[0] = lightColor[1] = lightColor[2] = 1.0f;
 
-			lightPos[0] = 5.6f;
-			lightPos[1] = 10.0f;
-			lightPos[2] = 7.5f;
+
+		for (size_t i = 0; i < lights.size(); i++)
+		{
+			if (ImGui::CollapsingHeader(std::string("Light " + std::to_string(i)).c_str()))
+			{
+				ImGui::Indent(20);
+				ImGui::ColorEdit3(std::string("Light Color: " + std::to_string(i)).c_str(), lights.at(i).diffuse);
+				ImGui::DragFloat3(std::string("Light Position: " + std::to_string(i)).c_str(), lights.at(i).position, 0.1f);
+
+
+
+				static int selectedType = 0;
+				ImGui::RadioButton("Exponent", &selectedType, 0);	ImGui::SameLine();
+				ImGui::RadioButton("Cutoff", &selectedType, 1);	ImGui::SameLine();
+				ImGui::RadioButton("Direction", &selectedType, 2);
+
+				if (lights.at(i).type == LightType::EXPONENT)
+					ImGui::DragFloat(std::string("Exponent: " + std::to_string(i)).c_str(), &lights.at(i).exponent, 0.1f);
+				if (lights.at(i).type == LightType::CUTOFF)
+					ImGui::DragFloat(std::string("Cutoff Angle: " + std::to_string(i)).c_str(), &lights.at(i).angle, 0.1f);
+				if (lights.at(i).type == LightType::DIRECTION)
+					ImGui::DragFloat3(std::string("Direction: " + std::to_string(i)).c_str(), lights.at(i).direction, 0.1f);
+
+				switch (selectedType)
+				{
+				case 0: lights.at(i).type = LightType::EXPONENT; break;
+				case 1: lights.at(i).type = LightType::CUTOFF; break;
+				case 2: lights.at(i).type = LightType::DIRECTION; break;
+				default:
+					break;
+				}
+
+				ImGui::Unindent(20);
+			}
+
 		}
-		ImGui::ColorEdit3("Light Color", &lightColor[0]);
-		ImGui::DragFloat3("Light Position", &lightPos[0], 0.1f);
 	}
 
 	ImGui::Spacing();
@@ -387,17 +411,23 @@ void RenderIMGUI()
 	}
 
 	ImGui::SameLine();
+	if (ImGui::Button("Group"))
+		objs.push_back(Object("Group" + std::to_string(Randomize(0, 1000))));
+
+
 	if (ImGui::Button("3D Model"))
 	{
 		Model* model3D = new Model();
 		model3D->Assign3DModel("");
 		models.push_back(*model3D);
 	}
-
 	ImGui::SameLine();
-	if (ImGui::Button("Group"))
-		objs.push_back(Object("Group" + std::to_string(Randomize(0, 1000))));
-
+	if (ImGui::Button("Light"))
+		if (lights.size() < GL_MAX_LIGHTS)
+		{
+			LightModel light(lights.size());
+			lights.push_back(light);
+		}
 
 
 
@@ -578,7 +608,7 @@ void RenderScene(void)
 	glClearColor(0.2f, 0.5f, 0.8f, 1.0f);
 
 	for (auto& model : models)
-		model.Render();
+			model.Render();
 
 	RenderIMGUI();
 }
@@ -684,7 +714,10 @@ void CheckCoinsCollision()
 	if (objs.at(lastHit->group).name.substr(0, 5) == "Coins")
 	{
 		for (size_t i = 0; i < objs.at(lastHit->group).obj.size(); i++)
-			objs.at(lastHit->group).obj.at(i)->TranslateAccum(-10000, -10000, -10000);
+		{
+			objs.at(lastHit->group).obj.at(i)->collider = false;
+			objs.at(lastHit->group).obj.at(i)->visible = false;
+		}
 
 		std::cout << "Hit coins!!" << std::endl;
 		coinsVal++;
@@ -894,6 +927,7 @@ int main(int argc, char** argv)
 	SortObjects();
 	std::atexit(WriteHeaderBackup);
 
+
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_LIGHTING);
 	glEnable(GL_LIGHT0);
@@ -902,7 +936,9 @@ int main(int argc, char** argv)
 
 	glShadeModel(GL_SMOOTH);
 
-
+	LightModel baseLight(0);
+	baseLight.SetPosition(5.6f, 10.0f, 7.5f);
+	lights.push_back(baseLight);
 	glutMainLoop();
 
 	// Cleanup

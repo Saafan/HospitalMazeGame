@@ -72,7 +72,7 @@ public:
 	std::string id = "0";
 	bool uniformScale = false;
 	bool collider = false;
-	bool local = false;
+	bool visible = true;
 	bool selected = false;
 
 	Model_3DS* model3D = nullptr;
