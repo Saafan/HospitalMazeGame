@@ -50,7 +50,10 @@ void Object::Rotate()
 		model->groupCenter.at(2) = center.at(2);
 
 
-		model->Rotate(rotateGroup.at(0), rotateGroup.at(1), rotateGroup.at(2), center.at(0), center.at(1), center.at(2));
+		model->Rotate(model->rotate.at(0), model->rotate.at(1), model->rotate.at(2), center.at(0), center.at(1), center.at(2));
+		model->groupRotate.at(0) = rotateGroup.at(0);
+		model->groupRotate.at(1) = rotateGroup.at(1);
+		model->groupRotate.at(2) = rotateGroup.at(2);
 	}
 }
 

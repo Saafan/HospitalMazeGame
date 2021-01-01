@@ -31,9 +31,11 @@ void UI::SetValue(int* value)
 	this->value = value;
 }
 
-void UI::Translate(std::vector<float> pos)
+void UI::Translate(float x, float y, float z)
 {
-	this->pos = pos;
+	this->pos.at(0) = x;
+	this->pos.at(1) = y;
+	this->pos.at(2) = z;
 }
 
 void UI::ChangeColor(std::vector<float> color)

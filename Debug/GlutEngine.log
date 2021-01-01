@@ -4,7 +4,7 @@ C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\MSBuild\Microsoft\
   main.cpp
 C:\Users\Saafan\Documents\OpenGL\Projects\GlutEngine\src\TextureBuilder.h(27,52): warning C4244: 'argument': conversion from 'int' to 'GLfloat', possible loss of data
 C:\Users\Saafan\Documents\OpenGL\Projects\GlutEngine\src\TextureBuilder.h(28,52): warning C4244: 'argument': conversion from 'int' to 'GLfloat', possible loss of data
-C:\Users\Saafan\Documents\OpenGL\Projects\GlutEngine\src\main.cpp(802,12): warning C4996: 'localtime': This function or variable may be unsafe. Consider using localtime_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+C:\Users\Saafan\Documents\OpenGL\Projects\GlutEngine\src\main.cpp(800,12): warning C4996: 'localtime': This function or variable may be unsafe. Consider using localtime_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
 GLTexture.obj : warning LNK4075: ignoring '/EDITANDCONTINUE' due to '/INCREMENTAL:NO' specification
 Debug\GLTexture.obj : warning LNK4042: object specified more than once; extras ignored
 Debug\Model_3DS.obj : warning LNK4042: object specified more than once; extras ignored

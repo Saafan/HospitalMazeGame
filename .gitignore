@@ -8,3 +8,5 @@
 .vs/OpenGLMeshLoader/v16/ipch/AutoPCH/ecb46722dc9b30f9/RANDOMIZE.ipch
 .vs/OpenGLMeshLoader/v16/ipch/AutoPCH/f0837a98a2405b00/OPENGLMESHLOADER19.ipch
 .vs/OpenGLMeshLoader/v16/ipch/AutoPCH/fc5d062ca0d62455/UI.ipch
+*.rar
+*.opendb

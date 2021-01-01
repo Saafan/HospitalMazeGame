@@ -19,7 +19,7 @@ public:
 	void SetText(std::string);
 	void SetValue(int* value);
 
-	void Translate(std::vector<float> pos);
+	void Translate(float x, float y, float z);
 	void ChangeColor(std::vector<float> color);
 
 	void Print(float x, float y, char* string);

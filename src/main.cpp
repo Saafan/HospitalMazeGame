@@ -157,7 +157,7 @@ void ShowModelAttributes(Model& model, std::string name)
 		if (model.GetPrimitive() == Primitive::Model)
 		{
 			static char tempBuf[60] = { 0 };
-			ImGui::InputText(std::string("Model Name " + model.id).c_str(), tempBuf, IM_ARRAYSIZE(tempBuf));
+			ImGui::InputText(std::string("Model Name " + model.id + " " + model.path).c_str(), tempBuf, IM_ARRAYSIZE(tempBuf));
 			ImGui::SameLine();
 			if (ImGui::Button("Apply Path"))
 				model.Assign3DModel("models/" + std::string(tempBuf) + "/" + std::string(tempBuf) + ".3ds");
@@ -234,8 +234,13 @@ void CheckAllCollisions()
 
 void RenderUI()
 {
+	coins.Translate(cameraPos.x + coins.pos.at(0), cameraPos.y + coins.pos.at(1), cameraPos.z + coins.pos.at(2));
 	coins.Render();
+
+	score.Translate(cameraPos.x + score.pos.at(0), cameraPos.y + score.pos.at(1), cameraPos.z + score.pos.at(2));
 	score.Render();
+
+	health.Translate(cameraPos.x + health.pos.at(0), cameraPos.y + health.pos.at(1), cameraPos.z + health.pos.at(2));
 	health.Render();
 }
 
@@ -271,8 +276,6 @@ void RenderIMGUI()
 	MouseMove();
 
 	RenderUI();
-
-
 
 	static bool showCode = false;
 	ImGui::Begin("3D Editor");

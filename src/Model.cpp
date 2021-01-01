@@ -170,9 +170,9 @@ void Model::Render()
 
 	glTranslatef(groupCenter.at(0), groupCenter.at(1), groupCenter.at(2));
 
-	glRotatef(rotate.at(0), 1, 0, 0);
-	glRotatef(rotate.at(1), 0, 1, 0);
-	glRotatef(rotate.at(2), 0, 0, 1);
+	glRotatef(rotate.at(0) + groupRotate.at(0), 1, 0, 0);
+	glRotatef(rotate.at(1) + groupRotate.at(1), 0, 1, 0);
+	glRotatef(rotate.at(2) + groupRotate.at(2), 0, 0, 1);
 
 	glTranslatef(-groupCenter.at(0), -groupCenter.at(1), -groupCenter.at(2));
 
