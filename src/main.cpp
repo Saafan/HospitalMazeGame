@@ -3,7 +3,6 @@
 #include <iomanip>
 #include <fstream>
 
-
 #include "TextureBuilder.h"
 #include "Model_3DS.h"
 #include "GLTexture.h"
@@ -47,12 +46,14 @@ UI health({ 1.00f, 0.0f, 0.0f }, "Health: ", & healthVal, { 1.2f, 1.90f, 0.0f })
 int WIDTH = 1100;
 int HEIGHT = 950;
 
+bool rotateAround = false;;
+bool moveWithCenter = true;;
+
 float mouseDeltX, mouseDeltY = 0;
 
 float radius = 1.5f;
 float angle = -45.11f;
 float elapsedTime = 0.0f;
-
 
 static float lightColor[]{ 1.0f, 1.0f, 1.0f };
 static float lightPos[]{ 5.6f, 10.0f, 7.5f };
@@ -61,6 +62,27 @@ void WriteHeader();
 void CheckCoinsCollision();
 
 std::stringstream code;
+
+std::vector<Model> models;
+
+std::vector<std::vector<Model>> modelsHistory;
+
+vec3 GetCharacterPos()
+{
+	vec3 pos;
+	for (const auto& model : models)
+	{
+		if (model.group != -1)
+			if (objs.at(model.group).name._Equal("Character"))
+				if (model.collider)
+				{
+					pos.x = model.position.at(0);
+					pos.y = model.position.at(1);
+					pos.z = model.position.at(2);
+				}
+	}
+	return pos;
+}
 
 void SetupCamera()
 {
@@ -72,23 +94,19 @@ void SetupCamera()
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
 
-	cameraPos.x = std::sin(angle * 3.14f / 180.0f) * radius;
-	cameraPos.z = std::cos(angle * 3.14f / 180.0f) * radius;
+	if (rotateAround)
+	{
+		cameraPos.x = std::sin(angle * 3.14f / 180.0f) * radius;
+		cameraPos.z = std::cos(angle * 3.14f / 180.0f) * radius;
+	}
 
 	gluLookAt(cameraPos.x + 1.0, cameraPos.y + 3.0, cameraPos.z + 2.8, cameraCenter.x, cameraCenter.y, cameraCenter.z, 0.0f, 1.0f, 0.0f);
 }
-
-std::vector<Model> models;
-
-std::vector<std::vector<Model>> modelsHistory;
-
-
 void SetupLights()
 {
 	for (size_t i = 0; i < lights.size(); i++)
 		lights.at(i).Render();
 }
-
 
 void SortObjects()
 {
@@ -175,7 +193,6 @@ void ShowModelAttributes(Model& model, std::string name)
 		if (ImGui::Button(std::string("Reset Color: " + name).c_str()))
 			model.color.R = model.color.G = model.color.B = 1;
 
-
 		if (ImGui::Button(std::string("Delete: " + name).c_str()))
 		{
 			for (size_t q = 0; q < models.size(); q++)
@@ -223,7 +240,6 @@ void ShowModelAttributes(Model& model, std::string name)
 	}
 }
 
-
 void CheckAllCollisions()
 {
 	if (lastHit == nullptr)
@@ -268,8 +284,6 @@ void MouseMove()
 				model.TranslateAccum(mouseDeltX, 0, mouseDeltY);
 }
 
-
-
 void RenderIMGUI()
 {
 	CheckAllCollisions();
@@ -279,7 +293,6 @@ void RenderIMGUI()
 
 	static bool showCode = false;
 	ImGui::Begin("3D Editor");
-
 
 	if (ImGui::Button("Unselect All"))
 		ClearSelected();
@@ -295,6 +308,15 @@ void RenderIMGUI()
 			angle = 0.0f;
 			radius = 1.5f;
 		}
+		static int selectedType = 1;
+		ImGui::RadioButton("Rotate Around", &selectedType, 0);	ImGui::SameLine();
+		ImGui::RadioButton("Move with Center", &selectedType, 1);
+		rotateAround = false;
+		moveWithCenter = false;
+		if (selectedType == 0)
+			rotateAround = true;
+		if (selectedType == 1)
+			moveWithCenter = true;
 		ImGui::DragFloat3("Camera Eye", &cameraPos.x, 0.1f);
 		ImGui::DragFloat3("Camera Center", &cameraCenter.x, 0.1f);
 	}
@@ -303,7 +325,6 @@ void RenderIMGUI()
 	{
 		if (ImGui::Button("Reset Camera Position"))
 		{
-
 		}
 		ImGui::DragFloat3("Camera Eye", &score.pos.at(0), 0.1f);
 		ImGui::DragFloat3("Camera Center", &cameraCenter.x, 0.1f);
@@ -315,7 +336,6 @@ void RenderIMGUI()
 			for (size_t i = 0; i < lights.size(); i++)
 				lightColor[0] = lightColor[1] = lightColor[2] = 1.0f;
 
-
 		for (size_t i = 0; i < lights.size(); i++)
 		{
 			if (ImGui::CollapsingHeader(std::string("Light " + std::to_string(i)).c_str()))
@@ -323,8 +343,6 @@ void RenderIMGUI()
 				ImGui::Indent(20);
 				ImGui::ColorEdit3(std::string("Light Color: " + std::to_string(i)).c_str(), lights.at(i).diffuse);
 				ImGui::DragFloat3(std::string("Light Position: " + std::to_string(i)).c_str(), lights.at(i).position, 0.1f);
-
-
 
 				static int selectedType = 0;
 				ImGui::RadioButton("Exponent", &selectedType, 0);	ImGui::SameLine();
@@ -349,15 +367,12 @@ void RenderIMGUI()
 
 				ImGui::Unindent(20);
 			}
-
 		}
 	}
 
 	ImGui::Spacing();
 	ImGui::Spacing();
 	ImGui::Spacing();
-
-
 
 	if (ImGui::Button("Cube"))
 	{
@@ -417,7 +432,6 @@ void RenderIMGUI()
 	if (ImGui::Button("Group"))
 		objs.push_back(Object("Group" + std::to_string(Randomize(0, 1000))));
 
-
 	if (ImGui::Button("3D Model"))
 	{
 		Model* model3D = new Model();
@@ -432,12 +446,9 @@ void RenderIMGUI()
 			lights.push_back(light);
 		}
 
-
-
 	static int i;
 	for (auto& obj : objs)
 	{
-
 		if (ImGui::Button(std::string("(Un)Select " + obj.name).c_str()))
 			if (!obj.obj.empty())
 				SelectUnSelectGroup(obj.obj.at(0)->group);
@@ -509,7 +520,6 @@ void RenderIMGUI()
 			ShowModelAttributes(model, name);
 		}
 	i = 0;
-
 
 	ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
 	ImGui::End();
@@ -599,7 +609,6 @@ void RenderIMGUI()
 	WIDTH = glutGet(GLUT_WINDOW_WIDTH);
 	HEIGHT = glutGet(GLUT_WINDOW_HEIGHT);
 	glViewport(0, 0, WIDTH, HEIGHT);
-
 }
 
 void RenderScene(void)
@@ -607,15 +616,20 @@ void RenderScene(void)
 	SetupCamera();
 	SetupLights();
 
+	glPushMatrix();
+	glColor3f(1.0, 0, 0);
+	glutWireCube(0.5f);
+	glTranslatef(cameraCenter.x, cameraCenter.y, cameraCenter.z);
+	glPopMatrix();
+
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glClearColor(0.2f, 0.5f, 0.8f, 1.0f);
 
 	for (auto& model : models)
-			model.Render();
+		model.Render();
 
 	RenderIMGUI();
 }
-
 
 bool ModelsIntresect(Model& model1, Model& model2, float x, float z)
 {
@@ -649,8 +663,7 @@ void key(unsigned char key, int x, int y)
 			models = modelsHistory[modelsHistory.size() - historyNum];
 		}
 
-
-	//#TODO Work on The Redo 
+	//#TODO Work on The Redo
 	if (key == 'm')
 		if (historyNum > 1)
 		{
@@ -659,14 +672,41 @@ void key(unsigned char key, int x, int y)
 		}
 
 	if (key == 'w')
-		radius -= 0.5f;
+	{
+		if (moveWithCenter)
+		{
+			cameraCenter.z -= 0.5f;
+			cameraPos.z -= 0.5f;
+		}
+		else
+			radius -= 0.5f;
+	}
 	if (key == 's')
-		radius += 0.5f;
+		if (moveWithCenter)
+		{
+			cameraCenter.z += 0.5f;
+			cameraPos.z += 0.5f;
+		}
+		else
+			radius += 0.5f;
 
 	if (key == 'a')
-		angle -= 5.0f;
+		if (moveWithCenter)
+		{
+			cameraCenter.x -= 0.5f;
+			cameraPos.x -= 0.5f;
+		}
+		else
+			angle -= 5.0f;
+
 	if (key == 'd')
-		angle += 5.0f;
+		if (moveWithCenter)
+		{
+			cameraCenter.x += 0.5f;
+			cameraPos.x += 0.5f;
+		}
+		else
+			angle += 5.0f;
 
 	if (key == 'q')
 		cameraPos.y += 0.5f;
@@ -729,9 +769,10 @@ void CheckCoinsCollision()
 
 void key(int key, int x, int y)
 {
-
 	ImGuiIO& io = ImGui::GetIO();
 	io.AddInputCharacter(key + 256);
+
+	cameraCenter = GetCharacterPos();
 
 	bool pass = false;
 	const float limit = 0.2f;
@@ -743,14 +784,26 @@ void key(int key, int x, int y)
 				if ((key == GLUT_KEY_DOWN && !CheckCollision(0.0f, limit)) || (key == GLUT_KEY_UP && !CheckCollision(0.0f, -limit)) || (key == GLUT_KEY_LEFT && !CheckCollision(-limit, 0.0f)) || (key == GLUT_KEY_RIGHT && !CheckCollision(limit, 0.0f)))
 					pass = true;
 				if (pass)
-					if (key == GLUT_KEY_DOWN)
-						model.TranslateAccum(0.0f, 0.0f, speed);
-					else if (key == GLUT_KEY_UP)
+					if (key == GLUT_KEY_UP) {
 						model.TranslateAccum(0.0f, 0.0f, -speed);
+						cameraPos.z += -0.5f;
+					}
+					else if (key == GLUT_KEY_DOWN)
+					{
+						model.TranslateAccum(0.0f, 0.0f, speed);
+						cameraCenter.z -= speed;
+						cameraPos.z -= speed;
+					}
 					else if (key == GLUT_KEY_LEFT)
+					{
 						model.TranslateAccum(-speed, 0.0f, 0.0f);
+						cameraPos.x += -0.5f;
+					}
 					else if (key == GLUT_KEY_RIGHT)
+					{
 						model.TranslateAccum(speed, 0.0f, 0.0f);
+						cameraPos.x += speed;
+					}
 			}
 
 	if (!pass)
@@ -773,9 +826,10 @@ void key(int key, int x, int y)
 	else
 		lastHit = nullptr;
 
-
+	if (key == GLUT_KEY_UP) {
+		cameraPos.z -= 0.5f;
+	}
 }
-
 
 void glut_display_func()
 {
@@ -789,6 +843,7 @@ void glut_display_func()
 	ImGui::Render();
 	ImGuiIO& io = ImGui::GetIO();
 	ImGui_ImplOpenGL2_RenderDrawData(ImGui::GetDrawData());
+	std::cout << GetCharacterPos().x << std::endl;
 
 	glutSwapBuffers();
 	glutPostRedisplay();
@@ -886,8 +941,6 @@ void WriteHeaderBackup()
 	WriteHeader();
 }
 
-
-
 int main(int argc, char** argv)
 {
 	srand(time(0));
@@ -910,7 +963,6 @@ int main(int argc, char** argv)
 	glEnable(GL_TEXTURE_2D);
 	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 
-
 	IMGUI_CHECKVERSION();
 	ImGui::CreateContext();
 	ImGuiIO& io = ImGui::GetIO(); (void)io;
@@ -930,7 +982,6 @@ int main(int argc, char** argv)
 	SortObjects();
 	std::atexit(WriteHeaderBackup);
 
-
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_LIGHTING);
 	glEnable(GL_LIGHT0);
@@ -948,8 +999,6 @@ int main(int argc, char** argv)
 	ImGui_ImplOpenGL2_Shutdown();
 	ImGui_ImplGLUT_Shutdown();
 	ImGui::DestroyContext();
-
-
 
 	return 1;
 }

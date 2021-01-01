@@ -167,7 +167,7 @@ models.emplace_back(Model3D13);
  // CollisionBox14 of Group Character
 Model CollisionBox14;
 CollisionBox14.CreateWireCube(0.5);
-CollisionBox14.Translate(4.27, 0.5, -8.72);
+CollisionBox14.Translate(5.47, 0.5, 25.58);
 CollisionBox14.Scale(0.629, 1.783, 0.503);
 CollisionBox14.Rotate(0, 180, 0);
 CollisionBox14.collider = true;
@@ -177,7 +177,7 @@ models.emplace_back(CollisionBox14);
  // Model3D15 of Group Character
 Model Model3D15;
 Model3D15.Assign3DModel("models/character/character.3ds");
-Model3D15.Translate(4.27, 0, -8.53);
+Model3D15.Translate(5.47, 0, 25.77);
 Model3D15.Scale(0.005, 0.005, 0.005);
 Model3D15.Rotate(0, 180, 0);
 Model3D15.group = 0;
