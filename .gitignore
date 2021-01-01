@@ -10,3 +10,20 @@
 .vs/OpenGLMeshLoader/v16/ipch/AutoPCH/fc5d062ca0d62455/UI.ipch
 *.rar
 *.opendb
+
+.vs/GlutEngine/v16/
+
+Debug/
+
+.vs/
+
+CppProperties.json
+=======
+*.rar
+*.opendb
+>>>>>>> master
+>>>>>>> Stashed changes
+
+src/backup/
+
+imgui.ini
