@@ -67,6 +67,9 @@ std::vector<Model> models;
 
 std::vector<std::vector<Model>> modelsHistory;
 
+bool firstPerson = true;
+
+
 vec3 GetCharacterPos()
 {
 	vec3 pos;
@@ -84,6 +87,11 @@ vec3 GetCharacterPos()
 	return pos;
 }
 
+vec3 firstCenter;
+vec3 thirdCenter;
+float firstAngle;
+
+
 void SetupCamera()
 {
 	glMatrixMode(GL_PROJECTION);
@@ -100,7 +108,25 @@ void SetupCamera()
 		cameraPos.z = std::cos(angle * 3.14f / 180.0f) * radius;
 	}
 
-	gluLookAt(cameraPos.x + 1.0, cameraPos.y + 3.0, cameraPos.z + 2.8, cameraCenter.x, cameraCenter.y, cameraCenter.z, 0.0f, 1.0f, 0.0f);
+	//if (thirdPerson)
+	//{
+	//	cameraCenter.x = std::sin(angle * 3.14f / 180.0f) * 5;
+	//	cameraCenter.z = std::cos(angle * 3.14f / 180.0f) * 5;
+	//}
+
+	if (firstPerson)
+	{
+		firstCenter.x = -std::cos(firstAngle * 3.14f / 180.0f) * 10;
+		firstCenter.z = std::sin(firstAngle * 3.14f / 180.0f) * 10;
+		gluLookAt(cameraPos.x, cameraPos.y + 1.5, cameraPos.z, cameraPos.x  + firstCenter.x, cameraCenter.y + firstCenter.y, cameraPos.z + firstCenter.z, 0.0f, 1.0f, 0.0f);
+	}
+	else
+	{
+		thirdCenter.x = -std::cos(firstAngle * 3.14f / 180.0f) * 4;
+		thirdCenter.z = std::sin(firstAngle * 3.14f / 180.0f) * 4;
+		gluLookAt(cameraPos.x  + thirdCenter.x, cameraPos.y + 3.0, cameraPos.z + thirdCenter.z, cameraCenter.x, cameraCenter.y, cameraCenter.z, 0.0f, 1.0f, 0.0f);
+	}
+
 }
 void SetupLights()
 {
@@ -279,9 +305,14 @@ void MouseMove()
 	mouseDeltX = io.MouseDelta.x / 100.0f;
 	mouseDeltY = io.MouseDelta.y / 100.0f;
 	if (io.MouseDown[0] && !ImGui::IsAnyWindowHovered() && !ImGui::IsAnyWindowFocused())
+	{
 		for (auto& model : models)
 			if (model.selected)
 				model.TranslateAccum(mouseDeltX, 0, mouseDeltY);
+
+		if (io.MouseDown[0])
+			firstAngle -= mouseDeltX * 10;
+	}
 }
 
 void RenderIMGUI()
@@ -291,11 +322,28 @@ void RenderIMGUI()
 
 	RenderUI();
 
+	cameraPos = GetCharacterPos();
+
+
+
+	//glPushMatrix();
+	//glTranslatef(cameraCenter.x + )
+	//glutWireCube(0.5f);
+	//glPopMatrix();
+
 	static bool showCode = false;
 	ImGui::Begin("3D Editor");
 
 	if (ImGui::Button("Unselect All"))
 		ClearSelected();
+
+	static int selectedType = 1;
+	ImGui::RadioButton("First Person View", &selectedType, 0);	ImGui::SameLine();
+	ImGui::RadioButton("Third Person View", &selectedType, 1);
+	if (selectedType == 0)
+		firstPerson = true;
+	else
+		firstPerson = false;
 
 	ImGui::Checkbox("Show Code", &showCode);
 
@@ -654,6 +702,8 @@ Model* CheckCollision(float x, float z)
 static int historyNum = 0;
 void key(unsigned char key, int x, int y)
 {
+
+
 	ImGuiIO& io = ImGui::GetIO();
 	io.AddInputCharacter(key);
 	if (key == 'n')
@@ -772,7 +822,12 @@ void key(int key, int x, int y)
 	ImGuiIO& io = ImGui::GetIO();
 	io.AddInputCharacter(key + 256);
 
-	cameraCenter = GetCharacterPos();
+
+	if (firstPerson)
+		cameraPos = GetCharacterPos();
+	else
+		cameraCenter = GetCharacterPos();
+
 
 	bool pass = false;
 	const float limit = 0.2f;
@@ -786,23 +841,36 @@ void key(int key, int x, int y)
 				if (pass)
 					if (key == GLUT_KEY_UP) {
 						model.TranslateAccum(0.0f, 0.0f, -speed);
-						cameraPos.z += -0.5f;
+						if (firstPerson)
+							cameraCenter.z -= speed;
+						else
+							cameraPos.z -= speed;
+
+
 					}
 					else if (key == GLUT_KEY_DOWN)
 					{
 						model.TranslateAccum(0.0f, 0.0f, speed);
-						cameraCenter.z -= speed;
-						cameraPos.z -= speed;
+						if (firstPerson)
+							cameraCenter.z += speed;
+						else
+							cameraPos.z += speed;
 					}
 					else if (key == GLUT_KEY_LEFT)
 					{
 						model.TranslateAccum(-speed, 0.0f, 0.0f);
-						cameraPos.x += -0.5f;
+						if (firstPerson)
+							cameraCenter.x -= speed;
+						else
+							cameraPos.x += speed;
 					}
 					else if (key == GLUT_KEY_RIGHT)
 					{
 						model.TranslateAccum(speed, 0.0f, 0.0f);
-						cameraPos.x += speed;
+						if (firstPerson)
+							cameraCenter.x += speed;
+						else
+							cameraPos.x -= speed;
 					}
 			}
 
@@ -825,10 +893,6 @@ void key(int key, int x, int y)
 	}
 	else
 		lastHit = nullptr;
-
-	if (key == GLUT_KEY_UP) {
-		cameraPos.z -= 0.5f;
-	}
 }
 
 void glut_display_func()
@@ -843,7 +907,6 @@ void glut_display_func()
 	ImGui::Render();
 	ImGuiIO& io = ImGui::GetIO();
 	ImGui_ImplOpenGL2_RenderDrawData(ImGui::GetDrawData());
-	std::cout << GetCharacterPos().x << std::endl;
 
 	glutSwapBuffers();
 	glutPostRedisplay();
