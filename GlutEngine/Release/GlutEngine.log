@@ -1,0 +1,13 @@
+﻿  ObjLoader.cpp
+C:\Users\Saafan\Documents\OpenGL\Projects\GlutEngine\GlutEngine\src\ObjLoader.cpp(38,20): warning C4018: '<': signed/unsigned mismatch
+C:\Users\Saafan\Documents\OpenGL\Projects\GlutEngine\GlutEngine\src\ObjLoader.cpp(41,19): warning C4101: 'normal': unreferenced local variable
+  Generating code
+  97 of 2199 functions ( 4.4%) were compiled, the rest were copied from previous compilation.
+    8 functions were new in current compilation
+    188 functions had inline decision re-evaluated but remain unchanged
+  Finished generating code
+glaux.lib(image.obj) : error LNK2026: module unsafe for SAFESEH image.
+glaux.lib(tkimage.obj) : error LNK2026: module unsafe for SAFESEH image.
+glaux.lib(tkdib.obj) : error LNK2026: module unsafe for SAFESEH image.
+glaux.lib(tk.obj) : error LNK2026: module unsafe for SAFESEH image.
+C:\Users\Saafan\Documents\OpenGL\Projects\GlutEngine\Release\GlutEngine.exe : fatal error LNK1281: Unable to generate SAFESEH image.

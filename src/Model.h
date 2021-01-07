@@ -35,6 +35,7 @@ public:
 	static int numofModels;
 
 	void Render();
+	void Animate();
 
 	void Translate(float f_x, float f_y, float f_z);
 	void TranslateAccum(float f_x, float f_y, float f_z);
@@ -45,10 +46,12 @@ public:
 
 	Primitive GetPrimitive() const { return prim; }
 	std::string GetPrimitveString();
-	void SetPrimitive(Primitive val) { prim = val; }
 
 
 	void SetColor(float R, float G, float B);
+	void SetAnimParam(float transX, float transY, float transZ, float rotX, float rotY, float rotZ, float scaleX, float scaleY, float scaleZ);
+	void PlaySoundOnce();
+	void PlayAnimSoundOnce();
 
 	void CreateTours(float innerRadius = 0.1f, float outerRadius = 0.8f, int sidesNum = 10, int rings = 10);
 	void CreateCylinder(float baseRadius = 0.5f, float topRadius = 0.5f, float height = 0.5f, float slices = 10, float stacks = 10);
@@ -67,28 +70,46 @@ public:
 	int stacks = 10; //Also Rings
 
 	std::string path;
+	std::string soundFileName;
+	std::string animSoundFileName;
+
 
 	int group = -1;
 	std::string id = "0";
 	bool uniformScale = false;
-	bool collider = false;
 	bool visible = true;
+
 	bool selected = false;
+	bool collider = false;
+	bool animated = false;
+	bool animateNow = false;
+	float animTime = 2.0f;
+	std::vector<float> rotFactor = { 0.0f, 0.0f, 0.0f };
+	std::vector<float> scaleFactor = { 0.0f, 0.0f, 0.0f };
+	std::vector<float> transFactor = { 0.0f, 0.0f, 0.0f };
 
 	Model_3DS* model3D = nullptr;
 
 	std::vector<float> position{ 0.0f, 0.0f, 0.0f };
 	std::vector<float> scale{ 1.0f, 1.0f, 1.0f };
 	std::vector<float> rotate{ 0.0f, 0.0f, 0.0f };
-	std::vector<float> groupTrans{0.0f, 0.0f, 0.0f};
-	std::vector<float> groupRotate{0.0f, 0.0f, 0.0f};
-	std::vector<float> groupCenter{0.0f, 0.0f, 0.0f};
+	std::vector<float> groupTrans{ 0.0f, 0.0f, 0.0f };
+	std::vector<float> groupRotate{ 0.0f, 0.0f, 0.0f };
+	std::vector<float> groupCenter{ 0.0f, 0.0f, 0.0f };
+
 
 	Color color;
 
+	std::string GetName();
+
 private:
 	Primitive prim;
-	
+
+	std::vector<float> positionAnim{ 0.0f, 0.0f, 0.0f };
+	std::vector<float> rotateAnim{ 0.0f, 0.0f, 0.0f };
+	std::vector<float> scaleAnim{ 0.0f, 0.0f, 0.0f };
+
+
 	void AssignVariables(Primitive prim = Primitive::Cube, float size = 0.0f, float radius = 0.0f, float outerRadius = 0.0f, int slices = 0, int slacks = 0);
 
 };

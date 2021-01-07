@@ -2,6 +2,7 @@
 #include <sstream>
 #include <iomanip>
 #include <fstream>
+#include <windows.h>
 
 #include "TextureBuilder.h"
 #include "Model_3DS.h"
@@ -46,8 +47,8 @@ UI health({ 1.00f, 0.0f, 0.0f }, "Health: ", & healthVal, { 1.2f, 1.90f, 0.0f })
 int WIDTH = 1100;
 int HEIGHT = 950;
 
-bool rotateAround = false;;
-bool moveWithCenter = true;;
+bool rotateAround = false;
+bool moveWithCenter = true;
 
 float mouseDeltX, mouseDeltY = 0;
 
@@ -59,7 +60,6 @@ static float lightColor[]{ 1.0f, 1.0f, 1.0f };
 static float lightPos[]{ 5.6f, 10.0f, 7.5f };
 
 void WriteHeader();
-void CheckCoinsCollision();
 
 std::stringstream code;
 
@@ -108,30 +108,24 @@ void SetupCamera()
 		cameraPos.z = std::cos(angle * 3.14f / 180.0f) * radius;
 	}
 
-	//if (thirdPerson)
-	//{
-	//	cameraCenter.x = std::sin(angle * 3.14f / 180.0f) * 5;
-	//	cameraCenter.z = std::cos(angle * 3.14f / 180.0f) * 5;
-	//}
-
 	if (firstPerson)
 	{
 		firstCenter.x = -std::cos(firstAngle * 3.14f / 180.0f) * 10;
 		firstCenter.z = std::sin(firstAngle * 3.14f / 180.0f) * 10;
-		gluLookAt(cameraPos.x, cameraPos.y + 1.5, cameraPos.z, cameraPos.x  + firstCenter.x, cameraCenter.y + firstCenter.y, cameraPos.z + firstCenter.z, 0.0f, 1.0f, 0.0f);
+		gluLookAt(cameraPos.x, cameraPos.y + 1.5, cameraPos.z, cameraPos.x + firstCenter.x, cameraCenter.y + firstCenter.y, cameraPos.z + firstCenter.z, 0.0f, 1.0f, 0.0f);
 	}
 	else
 	{
 		thirdCenter.x = -std::cos(firstAngle * 3.14f / 180.0f) * 4;
 		thirdCenter.z = std::sin(firstAngle * 3.14f / 180.0f) * 4;
-		gluLookAt(cameraPos.x  + thirdCenter.x, cameraPos.y + 3.0, cameraPos.z + thirdCenter.z, cameraCenter.x, cameraCenter.y, cameraCenter.z, 0.0f, 1.0f, 0.0f);
+		gluLookAt(cameraPos.x + thirdCenter.x, cameraPos.y + 3.0, cameraPos.z + thirdCenter.z, cameraCenter.x, cameraCenter.y, cameraCenter.z, 0.0f, 1.0f, 0.0f);
 	}
 
 }
 void SetupLights()
 {
-	for (size_t i = 0; i < lights.size(); i++)
-		lights.at(i).Render();
+	for (auto& light : lights)
+		light.Render();
 }
 
 void SortObjects()
@@ -151,6 +145,10 @@ void SortObjects()
 
 void ShowModelAttributes(Model& model, std::string name)
 {
+	if (!model.path.empty())
+		name = model.GetName() + " " + model.id;
+
+
 	if (ImGui::CollapsingHeader(name.c_str()))
 	{
 		ImGui::Checkbox(std::string("Select " + model.id).c_str(), &model.selected);
@@ -203,8 +201,44 @@ void ShowModelAttributes(Model& model, std::string name)
 			static char tempBuf[60] = { 0 };
 			ImGui::InputText(std::string("Model Name " + model.id + " " + model.path).c_str(), tempBuf, IM_ARRAYSIZE(tempBuf));
 			ImGui::SameLine();
-			if (ImGui::Button("Apply Path"))
+			if (ImGui::Button(std::string("Apply Path Model" + model.id).c_str()))
 				model.Assign3DModel("models/" + std::string(tempBuf) + "/" + std::string(tempBuf) + ".3ds");
+		}
+
+		if (model.GetPrimitive() == Primitive::WireCube)
+		{
+			ImGui::Checkbox(std::string("Animate Within " + model.id).c_str(), &model.animated);
+			if (ImGui::CollapsingHeader(std::string("Sound: " + name).c_str()))
+			{
+				static char tempBuf0[60] = { 0 };
+				ImGui::InputText(std::string("Collision Sound Name " + model.id).c_str(), tempBuf0, IM_ARRAYSIZE(tempBuf0));
+				ImGui::SameLine();
+				if (ImGui::Button(std::string("Apply Path Sound" + model.id).c_str()))
+					model.soundFileName = tempBuf0;
+
+				static char tempBuf1[60] = { 0 };
+				ImGui::InputText(std::string("Animation Sound Name " + model.id).c_str(), tempBuf1, IM_ARRAYSIZE(tempBuf1));
+				ImGui::SameLine();
+				if (ImGui::Button(std::string("Apply Path AnimSound" + model.id).c_str()))
+					model.animSoundFileName = tempBuf1;
+			}
+		}
+
+		if (ImGui::CollapsingHeader(std::string("Animate: " + name).c_str()))
+		{
+			ImGui::DragFloat3("Animate Pos", &model.transFactor[0], 0.0001); ImGui::SameLine();
+			if (ImGui::Button(std::string("Reset Pos" + model.id).c_str()))
+				model.transFactor[0] = model.transFactor[1] = model.transFactor[2] = 0.0f;
+
+			ImGui::DragFloat3("Animate Rot", &model.rotFactor[0], 0.0001); ImGui::SameLine();
+			if (ImGui::Button(std::string("Reset Rot" + model.id).c_str()))
+				model.rotFactor[0] = model.rotFactor[1] = model.rotFactor[2] = 0.0f;
+
+			ImGui::DragFloat3("Animate Scale", &model.scaleFactor[0], 0.0001); ImGui::SameLine();
+			if (ImGui::Button(std::string("Reset Scale" + model.id).c_str()))
+				model.scaleFactor[0] = model.scaleFactor[1] = model.scaleFactor[2] = 0.0f;
+
+			ImGui::DragFloat("Animation Time", &model.animTime, 0.001);
 		}
 
 		if (ImGui::Button(std::string("Reset Position: " + name).c_str()))
@@ -266,13 +300,8 @@ void ShowModelAttributes(Model& model, std::string name)
 	}
 }
 
-void CheckAllCollisions()
-{
-	if (lastHit == nullptr)
-		return;
-	CheckCoinsCollision();
-	lastHit = nullptr;
-}
+void CheckAllCollisions();
+
 
 void RenderUI()
 {
@@ -323,13 +352,6 @@ void RenderIMGUI()
 	RenderUI();
 
 	cameraPos = GetCharacterPos();
-
-
-
-	//glPushMatrix();
-	//glTranslatef(cameraCenter.x + )
-	//glutWireCube(0.5f);
-	//glPopMatrix();
 
 	static bool showCode = false;
 	ImGui::Begin("3D Editor");
@@ -478,7 +500,7 @@ void RenderIMGUI()
 
 	ImGui::SameLine();
 	if (ImGui::Button("Group"))
-		objs.push_back(Object("Group" + std::to_string(Randomize(0, 1000))));
+		objs.emplace_back("Group" + std::to_string(Randomize(0, 1000)));
 
 	if (ImGui::Button("3D Model"))
 	{
@@ -493,6 +515,7 @@ void RenderIMGUI()
 			LightModel light(lights.size());
 			lights.push_back(light);
 		}
+
 
 	static int i;
 	for (auto& obj : objs)
@@ -512,6 +535,7 @@ void RenderIMGUI()
 			obj.Translate();
 			ImGui::DragFloat3(std::string("Rotation: " + obj.name).c_str(), &obj.rotateGroup.at(0), 0.1f);
 			ImGui::SameLine();
+
 			if (ImGui::Button("Reset Rotation"))
 				obj.rotateGroup.at(0) = obj.rotateGroup.at(1) = obj.rotateGroup.at(2) = 0.0f;
 			obj.Rotate();
@@ -525,7 +549,7 @@ void RenderIMGUI()
 					newModel.id = std::to_string(model->numofModels++);
 					models.push_back(newModel);
 				}
-				objs.push_back(Object(obj.name + std::to_string(Randomize(0, 1000))));
+				objs.emplace_back(obj.name + std::to_string(Randomize(0, 1000)));
 				SortObjects();
 				break;
 			}
@@ -616,6 +640,7 @@ void RenderIMGUI()
 		if (model.GetPrimitive() == Primitive::Model)
 			code << name << ".Assign3DModel(\"" << model.path << "\");\n";
 
+
 		code << name << ".Translate(" << model.position.at(0) << ", " << model.position.at(1) << ", " << model.position.at(2) << ");\n";
 
 		if (model.scale.at(0) != 1 || model.scale.at(1) != 1 || model.scale.at(2) != 1)
@@ -629,6 +654,18 @@ void RenderIMGUI()
 
 		if (model.collider)
 			code << name << ".collider = " << "true;\n";
+
+		if (model.animated)
+		{
+			code << name << ".animated = " << "true;\n";
+			code << name << ".SetAnimParam(" << model.transFactor.at(0) << ", " << model.transFactor.at(1) << ", " << model.transFactor.at(2) << ", " << model.rotFactor.at(0) << ", " << model.rotFactor.at(1) << ", " << model.rotFactor.at(2) << ", " << model.scaleFactor.at(0) << ", " << model.scaleFactor.at(1) << ", " << model.scaleFactor.at(2) << ");\n";
+		}
+
+		if(model.soundFileName != "")
+			code << name << ".soundFileName = \"" << model.soundFileName << "\";\n";
+
+		if (model.animSoundFileName != "")
+			code << name << ".animSoundFileName = \"" << model.animSoundFileName << "\";\n";
 
 		if (model.group != -1)
 			code << name << ".group = " << model.group << ";\n";
@@ -676,6 +713,7 @@ void RenderScene(void)
 	for (auto& model : models)
 		model.Render();
 
+
 	RenderIMGUI();
 }
 
@@ -695,7 +733,12 @@ Model* CheckCollision(float x, float z)
 			for (auto& modelCollision : models)
 				if (modelCollision.collider && &modelCollision != &model && model.group != -1)
 					if (ModelsIntresect(model, modelCollision, x, z) && objs.at(model.group).name == "Character")
+					{
+						lastHit = &modelCollision;
+						modelCollision.PlaySoundOnce();
 						return &modelCollision;
+					}
+	lastHit = nullptr;
 	return nullptr;
 }
 
@@ -783,6 +826,13 @@ void key(unsigned char key, int x, int y)
 			if (model.selected)
 				model.TranslateAccum(0, -0.1, 0);
 
+	if (key == 'r')
+		if (lastHit != nullptr && lastHit->collider && lastHit->animated)
+		{
+			lastHit->PlayAnimSoundOnce();
+			lastHit->animateNow = true;
+		}
+
 	if (key == 't')
 	{
 		angle = -45.11f;
@@ -802,20 +852,80 @@ void key(unsigned char key, int x, int y)
 	}
 }
 
-void CheckCoinsCollision()
+bool CheckCoinsCollision()
 {
-	if (objs.at(lastHit->group).name.substr(0, 5) == "Coins")
+	std::string name = "Coins";
+	if (objs.at(lastHit->group).name.substr(0, name.length()) == name)
 	{
-		for (size_t i = 0; i < objs.at(lastHit->group).obj.size(); i++)
+		for (auto& model : objs.at(lastHit->group).obj)
 		{
-			objs.at(lastHit->group).obj.at(i)->collider = false;
-			objs.at(lastHit->group).obj.at(i)->visible = false;
+			model->collider = false;
+			model->visible = false;
 		}
 
-		std::cout << "Hit coins!!" << std::endl;
+		std::cout << "Hit coins!" << std::endl;
 		coinsVal++;
+		return true;
 	}
+	return false;
 }
+
+bool CheckKeyCollision()
+{
+	std::string name = "Key";
+	if (objs.at(lastHit->group).name.substr(0, name.length()) == name)
+	{
+		//#TODO Key Collision Logic	
+
+		return true;
+	}
+	return false;
+}
+
+bool CheckHealthKitCollision()
+{
+	std::string name = "HealthKit";
+	if (objs.at(lastHit->group).name.substr(0, name.length()) == name)
+	{
+		//#TODO HealthKit Collision Logic	
+		return true;
+	}
+	return false;
+}
+
+bool CheckDeskCollision()
+{
+	std::string name = "Desk";
+	if (objs.at(lastHit->group).name.substr(0, name.length()) == name)
+	{
+		//#TODO Desk Collision Logic	
+		return true;
+	}
+	return false;
+}
+
+bool CheckPrescriptionCollision()
+{
+	std::string name = "Prescription";
+	if (objs.at(lastHit->group).name.substr(0, name.length()) == name)
+	{
+		//#TODO Prescription Collision Logic	
+		return true;
+	}
+	return false;
+}
+
+void CheckAllCollisions()
+{
+	if (lastHit == nullptr || lastHit->group == -1)
+		return;
+	if (!CheckCoinsCollision())
+		if (!CheckKeyCollision())
+			if (!CheckDeskCollision())
+				if (!CheckPrescriptionCollision())
+					CheckHealthKitCollision();
+}
+
 
 void key(int key, int x, int y)
 {
@@ -830,7 +940,7 @@ void key(int key, int x, int y)
 
 
 	bool pass = false;
-	const float limit = 0.2f;
+	const float limit = 0.3;
 	const float speed = 0.1f;
 	for (auto& model : models)
 		if (model.group != -1)
@@ -840,17 +950,15 @@ void key(int key, int x, int y)
 					pass = true;
 				if (pass)
 					if (key == GLUT_KEY_UP) {
-						model.TranslateAccum(0.0f, 0.0f, -speed);
+						model.TranslateAccum(0.0f, 0.0f, speed);
 						if (firstPerson)
 							cameraCenter.z -= speed;
 						else
 							cameraPos.z -= speed;
-
-
 					}
 					else if (key == GLUT_KEY_DOWN)
 					{
-						model.TranslateAccum(0.0f, 0.0f, speed);
+						model.TranslateAccum(0.0f, 0.0f, -speed);
 						if (firstPerson)
 							cameraCenter.z += speed;
 						else
@@ -858,7 +966,7 @@ void key(int key, int x, int y)
 					}
 					else if (key == GLUT_KEY_LEFT)
 					{
-						model.TranslateAccum(-speed, 0.0f, 0.0f);
+						model.TranslateAccum(speed, 0.0f, 0.0f);
 						if (firstPerson)
 							cameraCenter.x -= speed;
 						else
@@ -866,33 +974,13 @@ void key(int key, int x, int y)
 					}
 					else if (key == GLUT_KEY_RIGHT)
 					{
-						model.TranslateAccum(speed, 0.0f, 0.0f);
+						model.TranslateAccum(-speed, 0.0f, 0.0f);
 						if (firstPerson)
 							cameraCenter.x += speed;
 						else
 							cameraPos.x -= speed;
 					}
 			}
-
-	if (!pass)
-	{
-		Model* collidedWith = nullptr;
-		collidedWith = CheckCollision(0.0f, limit);
-		if (collidedWith == nullptr)
-			collidedWith = CheckCollision(0.0f, -limit);
-		if (collidedWith == nullptr)
-			collidedWith = CheckCollision(limit, 0.0f);
-		if (collidedWith == nullptr)
-			collidedWith = CheckCollision(-limit, 0.0f);
-		if (collidedWith != nullptr)
-			if (collidedWith->group != -1)
-			{
-				std::cout << objs.at(collidedWith->group).name << std::endl;
-				lastHit = collidedWith;
-			}
-	}
-	else
-		lastHit = nullptr;
 }
 
 void glut_display_func()

@@ -76,11 +76,51 @@ void Model::AssignVariables(Primitive f_prim, float f_size, float f_radius, floa
 	stacks = f_stacks;
 }
 
+std::string Model::GetName()
+{
+	std::string name;
+	for (size_t i = 7; i < path.length(); i++)
+		if (i == 7)
+			name += std::toupper(path[i]);
+		else if (path[i] != '/')
+			name += path[i];
+		else
+			return name;
+}
+
 void Model::SetColor(float R, float G, float B)
 {
 	color.R = R;
 	color.G = G;
 	color.B = B;
+}
+
+void Model::SetAnimParam(float transX, float transY, float transZ, float rotX, float rotY, float rotZ, float scaleX, float scaleY, float scaleZ)
+{
+
+	transFactor.at(0) = transX;
+	transFactor.at(1) = transY;
+	transFactor.at(2) = transZ;
+
+	rotFactor.at(0) = rotX;
+	rotFactor.at(1) = rotY;
+	rotFactor.at(2) = rotZ;
+
+	scaleFactor.at(0) = scaleX;
+	scaleFactor.at(1) = scaleY;
+	scaleFactor.at(2) = scaleZ;
+}
+
+void Model::PlaySoundOnce()
+{
+	if (soundFileName.empty()) return;
+	PlaySound(std::string("sounds/" + soundFileName).c_str(), NULL, SND_ASYNC);
+}
+
+void Model::PlayAnimSoundOnce()
+{
+	if (animSoundFileName.empty()) return;
+	PlaySound(std::string("sounds/" + animSoundFileName).c_str(), NULL, SND_ASYNC);
 }
 
 void drawCircle(int x, int y, float r) {
@@ -143,7 +183,7 @@ void Model::CreateTeapot(float size)
 void Model::Assign3DModel(std::string path)
 {
 	AssignVariables(Primitive::Model);
-	if (path == "") return;
+	if (path.empty()) return;
 	this->path = path;
 	model3D = new Model_3DS();
 	model3D->Load((char*)path.c_str());
@@ -151,7 +191,7 @@ void Model::Assign3DModel(std::string path)
 
 void Model::Draw3DModel()
 {
-	if (path == "") return;
+	if (path.empty()) return;
 	model3D->Draw();
 }
 
@@ -163,22 +203,26 @@ void Model::Render()
 
 	glPushMatrix();
 
-	if (!selected)
-		glColor3f(color.R, color.G, color.B);
-	else
+	if (animateNow)
+		Animate();
+
+	if (animated)
+		glColor3f(1, 0, 1);
+	else if (selected)
 		glColor3f(0.31f, 0.98f, 0.48f);
+	else
+		glColor3f(color.R, color.G, color.B);
 
-	glTranslatef(groupCenter.at(0), groupCenter.at(1), groupCenter.at(2));
+	glTranslatef(position.at(0), position.at(1), position.at(2));
 
-	glRotatef(rotate.at(0) + groupRotate.at(0), 1, 0, 0);
-	glRotatef(rotate.at(1) + groupRotate.at(1), 0, 1, 0);
-	glRotatef(rotate.at(2) + groupRotate.at(2), 0, 0, 1);
+	glRotatef(rotate.at(0) + groupRotate.at(0) + rotateAnim.at(0) * 180, 1, 0, 0);
+	glRotatef(rotate.at(1) + groupRotate.at(1) + rotateAnim.at(1) * 180, 0, 1, 0);
+	glRotatef(rotate.at(2) + groupRotate.at(2) + rotateAnim.at(2) * 180, 0, 0, 1);
 
-	glTranslatef(-groupCenter.at(0), -groupCenter.at(1), -groupCenter.at(2));
+	glTranslatef(-position.at(0), -position.at(1), -position.at(2));
 
-	glTranslatef(position.at(0) + groupTrans.at(0), position.at(1) + groupTrans.at(1), position.at(2) + groupTrans.at(2));
-
-	glScalef(scale.at(0), scale.at(1), scale.at(2));
+	glTranslatef(position.at(0) + groupTrans.at(0) + std::sin(positionAnim.at(0)), position.at(1) + groupTrans.at(1) + std::sin(positionAnim.at(0)), position.at(2) + groupTrans.at(2) + std::cos(positionAnim.at(2)));
+	glScalef(scale.at(0) + std::sin(scaleAnim.at(0)), scale.at(1) + std::sin(scaleAnim.at(1)), scale.at(2) + std::sin(scaleAnim.at(2)));
 
 	if (prim == Primitive::Cube)
 		CreateCube(size);
@@ -207,4 +251,31 @@ void Model::Render()
 	glColor3f(1.0f, 1.0f, 1.0f);
 
 	glPopMatrix();
+}
+
+void Model::Animate()
+{
+	ImGuiIO& io = ImGui::GetIO();
+	static float timeSum = 0;
+	timeSum += io.DeltaTime;
+
+	std::cout << timeSum << std::endl;
+
+	if (timeSum < animTime)
+		for (size_t i = 0; i < 3; i++)
+		{
+			rotateAnim[i] += rotFactor[i];
+			positionAnim[i] += transFactor[i];
+			scaleAnim[i] += scaleFactor[i];
+		}
+	else
+		for (size_t i = 0; i < 3; i++)
+		{
+			rotateAnim[i] = 0;
+			positionAnim[i] = 0;
+			scaleAnim[i] = 0;
+			animateNow = false;
+			timeSum = 0;
+		}
+
 }
