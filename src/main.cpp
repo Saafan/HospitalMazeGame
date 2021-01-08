@@ -49,6 +49,7 @@ int HEIGHT = 950;
 
 bool rotateAround = false;
 bool moveWithCenter = true;
+bool mouseLock = false;
 
 float mouseDeltX, mouseDeltY = 0;
 
@@ -112,7 +113,7 @@ void SetupCamera()
 	{
 		firstCenter.x = -std::cos(firstAngle * 3.14f / 180.0f) * 10;
 		firstCenter.z = std::sin(firstAngle * 3.14f / 180.0f) * 10;
-		gluLookAt(cameraPos.x, cameraPos.y + 1.5, cameraPos.z, cameraPos.x + firstCenter.x, cameraCenter.y + firstCenter.y, cameraPos.z + firstCenter.z, 0.0f, 1.0f, 0.0f);
+		gluLookAt(cameraPos.x, cameraPos.y + 0.6f, cameraPos.z, cameraPos.x + firstCenter.x, cameraCenter.y + firstCenter.y, cameraPos.z + firstCenter.z, 0.0f, 1.0f, 0.0f);
 	}
 	else
 	{
@@ -148,10 +149,11 @@ void ShowModelAttributes(Model& model, std::string name)
 	if (!model.path.empty())
 		name = model.GetName() + " " + model.id;
 
+	ImGui::Checkbox(std::string("Select " + model.id).c_str(), &model.selected); ImGui::SameLine();
 
 	if (ImGui::CollapsingHeader(name.c_str()))
 	{
-		ImGui::Checkbox(std::string("Select " + model.id).c_str(), &model.selected);
+		ImGui::Checkbox(std::string("Hide " + model.id).c_str(), &(model.hidden));
 		ImGui::Checkbox(std::string("Uniform Scale " + model.id).c_str(), &model.uniformScale);
 		ImGui::ColorEdit3(std::string("Color " + model.id).c_str(), &model.color.R);
 		ImGui::DragFloat3(std::string("Position " + model.id).c_str(), &model.position.at(0), 0.01f);
@@ -337,9 +339,9 @@ void MouseMove()
 	{
 		for (auto& model : models)
 			if (model.selected)
-				model.TranslateAccum(mouseDeltX, 0, mouseDeltY);
+				model.TranslateAccum(-mouseDeltY, 0, mouseDeltX);
 
-		if (io.MouseDown[0])
+		if (io.MouseDown[0] && !mouseLock)
 			firstAngle -= mouseDeltX * 10;
 	}
 }
@@ -355,6 +357,8 @@ void RenderIMGUI()
 
 	static bool showCode = false;
 	ImGui::Begin("3D Editor");
+
+	ImGui::Checkbox("Lock Mouse", &mouseLock);
 
 	if (ImGui::Button("Unselect All"))
 		ClearSelected();
@@ -749,7 +753,7 @@ void key(unsigned char key, int x, int y)
 
 	ImGuiIO& io = ImGui::GetIO();
 	io.AddInputCharacter(key);
-	if (key == 'n')
+	if (key == '[')
 		if (modelsHistory.size() - historyNum > 0)
 		{
 			historyNum++;
@@ -757,7 +761,7 @@ void key(unsigned char key, int x, int y)
 		}
 
 	//#TODO Work on The Redo
-	if (key == 'm')
+	if (key == ']')
 		if (historyNum > 1)
 		{
 			historyNum--;
@@ -860,7 +864,7 @@ bool CheckCoinsCollision()
 		for (auto& model : objs.at(lastHit->group).obj)
 		{
 			model->collider = false;
-			model->visible = false;
+			model->hidden = true;
 		}
 
 		std::cout << "Hit coins!" << std::endl;
@@ -940,7 +944,7 @@ void key(int key, int x, int y)
 
 
 	bool pass = false;
-	const float limit = 0.3;
+	const float limit = 0.2;
 	const float speed = 0.1f;
 	for (auto& model : models)
 		if (model.group != -1)
@@ -950,7 +954,7 @@ void key(int key, int x, int y)
 					pass = true;
 				if (pass)
 					if (key == GLUT_KEY_UP) {
-						model.TranslateAccum(0.0f, 0.0f, speed);
+						model.TranslateAccum(speed, 0.0f, 0.0f);
 						if (firstPerson)
 							cameraCenter.z -= speed;
 						else
@@ -958,7 +962,7 @@ void key(int key, int x, int y)
 					}
 					else if (key == GLUT_KEY_DOWN)
 					{
-						model.TranslateAccum(0.0f, 0.0f, -speed);
+						model.TranslateAccum(-speed, 0.0f, 0.0f);
 						if (firstPerson)
 							cameraCenter.z += speed;
 						else
@@ -966,7 +970,7 @@ void key(int key, int x, int y)
 					}
 					else if (key == GLUT_KEY_LEFT)
 					{
-						model.TranslateAccum(speed, 0.0f, 0.0f);
+						model.TranslateAccum(0.0f, 0.0f, -speed);
 						if (firstPerson)
 							cameraCenter.x -= speed;
 						else
@@ -974,7 +978,7 @@ void key(int key, int x, int y)
 					}
 					else if (key == GLUT_KEY_RIGHT)
 					{
-						model.TranslateAccum(-speed, 0.0f, 0.0f);
+						model.TranslateAccum(0.0f, 0.0f, speed);
 						if (firstPerson)
 							cameraCenter.x += speed;
 						else

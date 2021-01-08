@@ -77,7 +77,7 @@ public:
 	int group = -1;
 	std::string id = "0";
 	bool uniformScale = false;
-	bool visible = true;
+	bool hidden = false;
 
 	bool selected = false;
 	bool collider = false;

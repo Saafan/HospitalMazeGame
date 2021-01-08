@@ -198,7 +198,7 @@ void Model::Draw3DModel()
 void Model::Render()
 {
 
-	if (!visible)
+	if (hidden)
 		return;
 
 	glPushMatrix();
@@ -213,16 +213,19 @@ void Model::Render()
 	else
 		glColor3f(color.R, color.G, color.B);
 
-	glTranslatef(position.at(0), position.at(1), position.at(2));
+	glTranslatef(position.at(0) + groupTrans.at(0) + std::sin(positionAnim.at(0)), position.at(1) + groupTrans.at(1) + std::sin(positionAnim.at(1)), position.at(2) + groupTrans.at(2) + std::sin(positionAnim.at(2)));
+
 
 	glRotatef(rotate.at(0) + groupRotate.at(0) + rotateAnim.at(0) * 180, 1, 0, 0);
 	glRotatef(rotate.at(1) + groupRotate.at(1) + rotateAnim.at(1) * 180, 0, 1, 0);
 	glRotatef(rotate.at(2) + groupRotate.at(2) + rotateAnim.at(2) * 180, 0, 0, 1);
 
-	glTranslatef(-position.at(0), -position.at(1), -position.at(2));
 
-	glTranslatef(position.at(0) + groupTrans.at(0) + std::sin(positionAnim.at(0)), position.at(1) + groupTrans.at(1) + std::sin(positionAnim.at(0)), position.at(2) + groupTrans.at(2) + std::cos(positionAnim.at(2)));
-	glScalef(scale.at(0) + std::sin(scaleAnim.at(0)), scale.at(1) + std::sin(scaleAnim.at(1)), scale.at(2) + std::sin(scaleAnim.at(2)));
+	if (prim == Primitive::Model)
+		glScalef((scale.at(0) + std::sin(scaleAnim.at(0)))/100, (scale.at(1) + std::sin(scaleAnim.at(1)))/100, (scale.at(2) + std::sin(scaleAnim.at(2)))/100);
+	else
+		glScalef(scale.at(0) + std::sin(scaleAnim.at(0)), scale.at(1) + std::sin(scaleAnim.at(1)), scale.at(2) + std::sin(scaleAnim.at(2)));
+
 
 	if (prim == Primitive::Cube)
 		CreateCube(size);
