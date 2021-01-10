@@ -8,16 +8,18 @@ class UI
 {
 public:
 	UI(std::vector<float> color, std::string text, int* value, std::vector<float> pos, std::string afterText = "");
+	UI(std::vector<float> color, std::string* text, int* value, std::vector<float> pos, std::string afterText = "");
 	UI();
 	int* value;
-	std::string text;
+	std::string text = "";
+	std::string* textPtr = nullptr;
 	std::string afterText;
 
 	std::vector<float> color{ 0.0f, 0.0f, 0.0f };
 	std::vector<float> pos{0.0f, 0.0f, 0.0f};
 
 	void SetAttributes(std::vector<float> color, std::string text, int value, std::vector<float> pos, std::string afterText);
-	void SetText(std::string);
+	void SetText(std::string*);
 	void SetValue(int* value);
 
 	void Translate(float x, float y, float z);

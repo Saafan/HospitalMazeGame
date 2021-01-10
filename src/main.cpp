@@ -41,7 +41,9 @@ vec3 cameraCenter;
 int coinsVal = 0;
 int scoreVal = 0;
 int healthVal = 100;
+std::string msgStr;
 UI coins({ 1.00f, 0.0f, 0.0f }, "Coins: ", & coinsVal, { 1.2f, 2.2f, 0.0f });
+UI msg({ 1.00f, 0.0f, 0.0f }, &msgStr, nullptr, { 1.2f, 2.2f, 0.0f });
 UI health({ 1.00f, 0.0f, 0.0f }, "Health: ", & healthVal, { 1.2f, 1.90f, 0.0f }, "%%");
 
 int WIDTH = 1100;
@@ -99,7 +101,7 @@ void SetupCamera()
 	glLoadIdentity();
 	//glOrtho(-0.5, 0.5, -0.5, 0.5, -1, 1);
 	gluPerspective(60, 16 / 9, 0.001, 100);
-
+	msgStr += "q";
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
 
@@ -322,11 +324,13 @@ void RenderUI()
 	{
 		coins.Translate(cameraCenter.x, cameraCenter.y + 2.2f, cameraCenter.z);
 		health.Translate(cameraCenter.x, cameraCenter.y + 2.0f, cameraCenter.z);
+		msg.Translate(cameraCenter.x, cameraCenter.y + 1.8f, cameraCenter.z);
 	}
 
 
 	coins.Render();
 	health.Render();
+	msg.Render();
 
 	glEnable(GL_DEPTH_TEST);
 }
@@ -1171,6 +1175,16 @@ void HistoryTimer(int value)
 	glutTimerFunc(2000, HistoryTimer, 2000);
 }
 
+
+void Timer(int value) {
+
+	healthVal = healthVal - 2;
+
+
+	glutTimerFunc(2000, Timer, 2000);
+}
+
+
 void WriteHeaderBackup()
 {
 	backup = true;
@@ -1259,6 +1273,7 @@ int main(int argc, char** argv)
 	LightModel baseLight(0);
 	baseLight.SetPosition(5.6f, 10.0f, 7.5f);
 	lights.push_back(baseLight);
+	glutTimerFunc(2000, Timer, 2000);
 	glutMainLoop();
 
 	// Cleanup
