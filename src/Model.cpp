@@ -223,7 +223,7 @@ void Model::Render()
 
 
 	if (prim == Primitive::Model)
-		glScalef((scale.at(0) + std::sin(scaleAnim.at(0)))/100, (scale.at(1) + std::sin(scaleAnim.at(1)))/100, (scale.at(2) + std::sin(scaleAnim.at(2)))/100);
+		glScalef((scale.at(0) + std::sin(scaleAnim.at(0))) / 100, (scale.at(1) + std::sin(scaleAnim.at(1))) / 100, (scale.at(2) + std::sin(scaleAnim.at(2))) / 100);
 	else
 		glScalef(scale.at(0) + std::sin(scaleAnim.at(0)), scale.at(1) + std::sin(scaleAnim.at(1)), scale.at(2) + std::sin(scaleAnim.at(2)));
 

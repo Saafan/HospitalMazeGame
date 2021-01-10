@@ -42,8 +42,7 @@ int coinsVal = 0;
 int scoreVal = 0;
 int healthVal = 100;
 UI coins({ 1.00f, 0.0f, 0.0f }, "Coins: ", & coinsVal, { 1.2f, 2.2f, 0.0f });
-UI score({ 0.0f, 0.0f, 0.0f }, "Score: ", & scoreVal, { 1.2f, 2.05f, 0.0f });
-UI health({ 1.00f, 0.0f, 0.0f }, "Health: ", & healthVal, { 1.2f, 1.90f, 0.0f });
+UI health({ 1.00f, 0.0f, 0.0f }, "Health: ", & healthVal, { 1.2f, 1.90f, 0.0f }, "%%");
 
 int WIDTH = 1100;
 int HEIGHT = 950;
@@ -317,19 +316,16 @@ void RenderUI()
 	if (firstPerson)
 	{
 		coins.Translate(cameraPos.x + firstCenter.x, cameraCenter.y + firstCenter.y + 4.4f, cameraPos.z + firstCenter.z);
-		score.Translate(cameraPos.x + firstCenter.x, cameraCenter.y + firstCenter.y + 4.2f, cameraPos.z + firstCenter.z);
 		health.Translate(cameraPos.x + firstCenter.x, cameraCenter.y + firstCenter.y + 4.0f, cameraPos.z + firstCenter.z);
 	}
 	else
 	{
-		coins.Translate(cameraCenter.x, cameraCenter.y	+ 2.2f, cameraCenter.z);
+		coins.Translate(cameraCenter.x, cameraCenter.y + 2.2f, cameraCenter.z);
 		health.Translate(cameraCenter.x, cameraCenter.y + 2.0f, cameraCenter.z);
-		score.Translate(cameraCenter.x, cameraCenter.y + 2.1f, cameraCenter.z);
 	}
 
 
 	coins.Render();
-	score.Render();
 	health.Render();
 
 	glEnable(GL_DEPTH_TEST);
@@ -358,7 +354,6 @@ void MouseMove()
 		for (auto& model : models)
 			if (model.selected)
 				model.TranslateAccum(-mouseDeltY, 0, mouseDeltX);
-
 		if (io.MouseDown[0] && !mouseLock)
 			firstAngle -= mouseDeltX * 10;
 	}
@@ -847,7 +842,11 @@ void key(unsigned char key, int x, int y)
 		if (lastHit != nullptr && lastHit->collider && lastHit->animated)
 		{
 			lastHit->PlayAnimSoundOnce();
-			lastHit->animateNow = true;
+			for (auto& model : objs.at(lastHit->group).obj)
+			{
+			//	model->animat
+			//	model->animateNow = true;
+			}
 		}
 
 	if (key == 't')

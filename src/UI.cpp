@@ -5,15 +5,16 @@ UI::UI()
 	value = nullptr;
 }
 
-UI::UI(std::vector<float> color, std::string text, int* value, std::vector<float> pos)
+UI::UI(std::vector<float> color, std::string text, int* value, std::vector<float> pos, std::string afterText)
 {
 	this->color = color;
 	this->text = text;
 	this->value = value;
 	this->pos = pos;
+	this->afterText = afterText;
 }
 
-void UI::SetAttributes(std::vector<float> color, std::string text, int value, std::vector<float> pos)
+void UI::SetAttributes(std::vector<float> color, std::string text, int value, std::vector<float> pos, std::string afterText)
 {
 	this->color = color;
 	this->text = text;
@@ -56,7 +57,7 @@ void UI::Render()
 {
 	glColor3f(color.at(0), color.at(1), color.at(2));
 	char* p0s[30];
-	sprintf((char*)p0s, std::string(text + "%i").c_str(), *value);
+	sprintf((char*)p0s, std::string(text + "%i" + afterText).c_str(), *value);
 	Print(pos.at(0), pos.at(1), pos.at(2), (char*)p0s);
 	glColor3f(1.0f, 1.0f, 1.0f);
 }

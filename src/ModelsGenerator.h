@@ -448,7 +448,7 @@ models.emplace_back(Model3D31);
  // Model3D32 of Group Character
 Model Model3D32;
 Model3D32.Assign3DModel("models/character/character.3ds");
-Model3D32.Translate(1.13, 0, -1.1);
+Model3D32.Translate(-0.87, 0, 1.7);
 Model3D32.Scale(0.253, 0.253, 0.253);
 Model3D32.group = 0;
 models.emplace_back(Model3D32);
@@ -456,7 +456,7 @@ models.emplace_back(Model3D32);
  // CollisionBox33 of Group Character
 Model CollisionBox33;
 CollisionBox33.CreateWireCube(0.5);
-CollisionBox33.Translate(1.1, 0.64, -1.08);
+CollisionBox33.Translate(-0.9, 0.64, 1.72);
 CollisionBox33.Scale(0.696, 2.111, 0.634);
 CollisionBox33.collider = true;
 CollisionBox33.group = 0;
@@ -549,7 +549,6 @@ Model CollisionBox43;
 CollisionBox43.CreateWireCube(0.5);
 CollisionBox43.Translate(-0.77, 0.2, 1.84);
 CollisionBox43.Scale(0.522, 0.522, 0.522);
-CollisionBox43.collider = true;
 CollisionBox43.soundFileName = "coins.wav";
 CollisionBox43.group = 7;
 models.emplace_back(CollisionBox43);
@@ -559,7 +558,6 @@ Model CollisionBox44;
 CollisionBox44.CreateWireCube(0.5);
 CollisionBox44.Translate(0.11, 0.2, 0.27);
 CollisionBox44.Scale(0.55, 0.55, 0.55);
-CollisionBox44.collider = true;
 CollisionBox44.soundFileName = "coins.wav";
 CollisionBox44.group = 8;
 models.emplace_back(CollisionBox44);
@@ -578,8 +576,10 @@ models.emplace_back(CollisionBox45);
 Model CollisionBox46;
 CollisionBox46.CreateWireCube(0.5);
 CollisionBox46.Translate(-0.63, 0.36, -0.03);
-CollisionBox46.Scale(1.991, 1.397, 1.552);
+CollisionBox46.Scale(2.238, 1.397, 1.739);
 CollisionBox46.collider = true;
+CollisionBox46.animated = true;
+CollisionBox46.SetAnimParam(0, 0.015, 0, 0, 0.022, 0, 0, 0, 0);
 CollisionBox46.soundFileName = "collision.wav";
 CollisionBox46.group = 9;
 models.emplace_back(CollisionBox46);
@@ -690,7 +690,6 @@ Model CollisionBox57;
 CollisionBox57.CreateWireCube(0.5);
 CollisionBox57.Translate(0.67, 0.24, 1.34);
 CollisionBox57.Scale(0.546, 0.546, 0.546);
-CollisionBox57.collider = true;
 CollisionBox57.soundFileName = "coins.wav";
 CollisionBox57.group = 11;
 models.emplace_back(CollisionBox57);
@@ -800,11 +799,5 @@ Model3D68.Translate(5.63, 0.31, 0.77);
 Model3D68.Scale(1.907, 2.937, 1.78);
 Model3D68.group = 27;
 models.emplace_back(Model3D68);
-
- // Model3D69
-Model Model3D69;
-Model3D69.Assign3DModel("");
-Model3D69.Translate(0, 0, 0);
-models.emplace_back(Model3D69);
 
 }
