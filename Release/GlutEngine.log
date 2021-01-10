@@ -1,0 +1,62 @@
+﻿C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\MSBuild\Microsoft\VC\v160\Microsoft.CppBuild.targets(1069,5): warning MSB8027: Two or more files with the name of GLTexture.cpp will produce outputs to the same location. This can lead to an incorrect build result.  The files involved are GLTexture.cpp, src\GLTexture.cpp.
+C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\MSBuild\Microsoft\VC\v160\Microsoft.CppBuild.targets(1069,5): warning MSB8027: Two or more files with the name of Model_3DS.cpp will produce outputs to the same location. This can lead to an incorrect build result.  The files involved are Model_3DS.cpp, src\Model_3DS.cpp.
+  GLTexture.cpp
+C:\Users\Saafan\Documents\OpenGL\Projects\GlutEngine\GLTexture.cpp(61,16): warning C4996: '_strlwr': This function or variable may be unsafe. Consider using _strlwr_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+C:\Users\Saafan\Documents\OpenGL\Projects\GlutEngine\GLTexture.cpp(65,17): warning C4996: 'strtok': This function or variable may be unsafe. Consider using strtok_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+C:\Users\Saafan\Documents\OpenGL\Projects\GlutEngine\GLTexture.cpp(77,16): warning C4996: '_strlwr': This function or variable may be unsafe. Consider using _strlwr_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+C:\Users\Saafan\Documents\OpenGL\Projects\GlutEngine\GLTexture.cpp(101,40): error C2664: 'AUX_RGBImageRec *auxDIBImageLoadW(LPCWSTR)': cannot convert argument 1 from 'char *' to 'LPCWSTR'
+C:\Users\Saafan\Documents\OpenGL\Projects\GlutEngine\GLTexture.cpp(101,36): message : Types pointed to are unrelated; conversion requires reinterpret_cast, C-style cast or function-style cast
+C:\Users\Saafan\Documents\OpenGL\Projects\GlutEngine\GLAUX.H(311,28): message : see declaration of 'auxDIBImageLoadW'
+C:\Users\Saafan\Documents\OpenGL\Projects\GlutEngine\GLTexture.cpp(146,15): warning C4996: 'fopen': This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+C:\Users\Saafan\Documents\OpenGL\Projects\GlutEngine\GLTexture.cpp(230,47): error C2664: 'HRSRC FindResourceW(HMODULE,LPCWSTR,LPCWSTR)': cannot convert argument 2 from 'char *' to 'LPCWSTR'
+C:\Users\Saafan\Documents\OpenGL\Projects\GlutEngine\GLTexture.cpp(230,32): message : Types pointed to are unrelated; conversion requires reinterpret_cast, C-style cast or function-style cast
+C:\Program Files (x86)\Windows Kits\10\Include\10.0.18362.0\um\libloaderapi.h(642,1): message : see declaration of 'FindResourceW'
+C:\Users\Saafan\Documents\OpenGL\Projects\GlutEngine\GLTexture.cpp(300,43): error C2664: 'HRSRC FindResourceW(HMODULE,LPCWSTR,LPCWSTR)': cannot convert argument 2 from 'char *' to 'LPCWSTR'
+C:\Users\Saafan\Documents\OpenGL\Projects\GlutEngine\GLTexture.cpp(300,32): message : Types pointed to are unrelated; conversion requires reinterpret_cast, C-style cast or function-style cast
+C:\Program Files (x86)\Windows Kits\10\Include\10.0.18362.0\um\libloaderapi.h(642,1): message : see declaration of 'FindResourceW'
+  Model_3DS.cpp
+  C:\Users\Saafan\Documents\OpenGL\Projects\GlutEngine\Model_3DS.cpp(78) : You need to uncomment this if you are using MFC
+C:\Users\Saafan\Documents\OpenGL\Projects\GlutEngine\Model_3DS.cpp(182,10): warning C4996: 'strtok': This function or variable may be unsafe. Consider using strtok_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+C:\Users\Saafan\Documents\OpenGL\Projects\GlutEngine\Model_3DS.cpp(212,11): warning C4996: 'fopen': This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+C:\Users\Saafan\Documents\OpenGL\Projects\GlutEngine\Model_3DS.cpp(764,2): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+  GLTexture.cpp
+C:\Users\Saafan\Documents\OpenGL\Projects\GlutEngine\src\GLTexture.cpp(61,16): warning C4996: '_strlwr': This function or variable may be unsafe. Consider using _strlwr_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+C:\Users\Saafan\Documents\OpenGL\Projects\GlutEngine\src\GLTexture.cpp(65,17): warning C4996: 'strtok': This function or variable may be unsafe. Consider using strtok_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+C:\Users\Saafan\Documents\OpenGL\Projects\GlutEngine\src\GLTexture.cpp(77,16): warning C4996: '_strlwr': This function or variable may be unsafe. Consider using _strlwr_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+C:\Users\Saafan\Documents\OpenGL\Projects\GlutEngine\src\GLTexture.cpp(101,40): error C2664: 'AUX_RGBImageRec *auxDIBImageLoadW(LPCWSTR)': cannot convert argument 1 from 'char *' to 'LPCWSTR'
+C:\Users\Saafan\Documents\OpenGL\Projects\GlutEngine\src\GLTexture.cpp(101,36): message : Types pointed to are unrelated; conversion requires reinterpret_cast, C-style cast or function-style cast
+C:\Users\Saafan\Documents\OpenGL\Projects\GlutEngine\src\GLAUX.H(311,28): message : see declaration of 'auxDIBImageLoadW'
+C:\Users\Saafan\Documents\OpenGL\Projects\GlutEngine\src\GLTexture.cpp(146,15): warning C4996: 'fopen': This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+C:\Users\Saafan\Documents\OpenGL\Projects\GlutEngine\src\GLTexture.cpp(230,47): error C2664: 'HRSRC FindResourceW(HMODULE,LPCWSTR,LPCWSTR)': cannot convert argument 2 from 'char *' to 'LPCWSTR'
+C:\Users\Saafan\Documents\OpenGL\Projects\GlutEngine\src\GLTexture.cpp(230,32): message : Types pointed to are unrelated; conversion requires reinterpret_cast, C-style cast or function-style cast
+C:\Program Files (x86)\Windows Kits\10\Include\10.0.18362.0\um\libloaderapi.h(642,1): message : see declaration of 'FindResourceW'
+C:\Users\Saafan\Documents\OpenGL\Projects\GlutEngine\src\GLTexture.cpp(300,43): error C2664: 'HRSRC FindResourceW(HMODULE,LPCWSTR,LPCWSTR)': cannot convert argument 2 from 'char *' to 'LPCWSTR'
+C:\Users\Saafan\Documents\OpenGL\Projects\GlutEngine\src\GLTexture.cpp(300,32): message : Types pointed to are unrelated; conversion requires reinterpret_cast, C-style cast or function-style cast
+C:\Program Files (x86)\Windows Kits\10\Include\10.0.18362.0\um\libloaderapi.h(642,1): message : see declaration of 'FindResourceW'
+  LightModel.cpp
+C:\Users\Saafan\Documents\OpenGL\Projects\GlutEngine\src\Renderer.h(7,10): fatal error C1083: Cannot open include file: 'vendor/imgui/imgui.h': No such file or directory
+  main.cpp
+C:\Users\Saafan\Documents\OpenGL\Projects\GlutEngine\src\TextureBuilder.h(27,52): warning C4244: 'argument': conversion from 'int' to 'GLfloat', possible loss of data
+C:\Users\Saafan\Documents\OpenGL\Projects\GlutEngine\src\TextureBuilder.h(28,52): warning C4244: 'argument': conversion from 'int' to 'GLfloat', possible loss of data
+C:\Users\Saafan\Documents\OpenGL\Projects\GlutEngine\src\Renderer.h(7,10): fatal error C1083: Cannot open include file: 'vendor/imgui/imgui.h': No such file or directory
+  Model.cpp
+C:\Users\Saafan\Documents\OpenGL\Projects\GlutEngine\src\Renderer.h(7,10): fatal error C1083: Cannot open include file: 'vendor/imgui/imgui.h': No such file or directory
+  Model_3DS.cpp
+  C:\Users\Saafan\Documents\OpenGL\Projects\GlutEngine\src\Model_3DS.cpp(78) : You need to uncomment this if you are using MFC
+C:\Users\Saafan\Documents\OpenGL\Projects\GlutEngine\src\Model_3DS.cpp(182,10): warning C4996: 'strtok': This function or variable may be unsafe. Consider using strtok_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+C:\Users\Saafan\Documents\OpenGL\Projects\GlutEngine\src\Model_3DS.cpp(212,11): warning C4996: 'fopen': This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+C:\Users\Saafan\Documents\OpenGL\Projects\GlutEngine\src\Model_3DS.cpp(463,24): warning C4018: '<': signed/unsigned mismatch
+C:\Users\Saafan\Documents\OpenGL\Projects\GlutEngine\src\Model_3DS.cpp(765,2): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+  Object.cpp
+C:\Users\Saafan\Documents\OpenGL\Projects\GlutEngine\src\Renderer.h(7,10): fatal error C1083: Cannot open include file: 'vendor/imgui/imgui.h': No such file or directory
+  Randomize.cpp
+  Texture.cpp
+  UI.cpp
+C:\Users\Saafan\Documents\OpenGL\Projects\GlutEngine\src\Renderer.h(7,10): fatal error C1083: Cannot open include file: 'vendor/imgui/imgui.h': No such file or directory
+  imgui.cpp
+  imgui_demo.cpp
+  imgui_draw.cpp
+  imgui_impl_glut.cpp
+C:\Users\Saafan\Documents\OpenGL\Projects\GlutEngine\vendor\imgui\imgui_impl_glut.cpp(31,10): fatal error C1083: Cannot open include file: 'glut.h': No such file or directory
+  imgui_impl_opengl2.cpp
+  imgui_widgets.cpp

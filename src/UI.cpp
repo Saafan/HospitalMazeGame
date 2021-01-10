@@ -43,10 +43,10 @@ void UI::ChangeColor(std::vector<float> color)
 	this->color = color;
 }
 
-void UI::Print(float x, float y, char* string)
+void UI::Print(float x, float y, float z, char* string)
 {
 	int len, i;
-	glRasterPos2f(x, y);
+	glRasterPos3f(x, y, z);
 	len = (int)strlen(string);
 	for (i = 0; i < len; i++)
 		glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, string[i]);
@@ -57,7 +57,7 @@ void UI::Render()
 	glColor3f(color.at(0), color.at(1), color.at(2));
 	char* p0s[30];
 	sprintf((char*)p0s, std::string(text + "%i").c_str(), *value);
-	Print(pos.at(0), pos.at(1), (char*)p0s);
+	Print(pos.at(0), pos.at(1), pos.at(2), (char*)p0s);
 	glColor3f(1.0f, 1.0f, 1.0f);
 }
 

@@ -86,6 +86,7 @@ std::string Model::GetName()
 			name += path[i];
 		else
 			return name;
+	return "";
 }
 
 void Model::SetColor(float R, float G, float B)

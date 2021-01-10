@@ -22,6 +22,6 @@ public:
 	void Translate(float x, float y, float z);
 	void ChangeColor(std::vector<float> color);
 
-	void Print(float x, float y, char* string);
+	void Print(float x, float y, float z, char* string);
 	void Render();
 };

@@ -18,6 +18,7 @@
 #include "UI.h"
 #include "LightModel.h"
 
+
 std::vector<Object> objs;
 GLTexture tex_ground;
 
@@ -306,16 +307,32 @@ void ShowModelAttributes(Model& model, std::string name)
 void CheckAllCollisions();
 
 
+Model cubeDirection;
+
+
+
 void RenderUI()
 {
-	coins.Translate(cameraPos.x + coins.pos.at(0), cameraPos.y + coins.pos.at(1), cameraPos.z + coins.pos.at(2));
+	glDisable(GL_DEPTH_TEST);
+	if (firstPerson)
+	{
+		coins.Translate(cameraPos.x + firstCenter.x, cameraCenter.y + firstCenter.y + 4.4f, cameraPos.z + firstCenter.z);
+		score.Translate(cameraPos.x + firstCenter.x, cameraCenter.y + firstCenter.y + 4.2f, cameraPos.z + firstCenter.z);
+		health.Translate(cameraPos.x + firstCenter.x, cameraCenter.y + firstCenter.y + 4.0f, cameraPos.z + firstCenter.z);
+	}
+	else
+	{
+		coins.Translate(cameraCenter.x, cameraCenter.y	+ 2.2f, cameraCenter.z);
+		health.Translate(cameraCenter.x, cameraCenter.y + 2.0f, cameraCenter.z);
+		score.Translate(cameraCenter.x, cameraCenter.y + 2.1f, cameraCenter.z);
+	}
+
+
 	coins.Render();
-
-	score.Translate(cameraPos.x + score.pos.at(0), cameraPos.y + score.pos.at(1), cameraPos.z + score.pos.at(2));
 	score.Render();
-
-	health.Translate(cameraPos.x + health.pos.at(0), cameraPos.y + health.pos.at(1), cameraPos.z + health.pos.at(2));
 	health.Render();
+
+	glEnable(GL_DEPTH_TEST);
 }
 
 void ClearSelected()
@@ -347,12 +364,13 @@ void MouseMove()
 	}
 }
 
+
+
 void RenderIMGUI()
 {
 	CheckAllCollisions();
 	MouseMove();
 
-	RenderUI();
 
 	cameraPos = GetCharacterPos();
 
@@ -401,7 +419,6 @@ void RenderIMGUI()
 		if (ImGui::Button("Reset Camera Position"))
 		{
 		}
-		ImGui::DragFloat3("Camera Eye", &score.pos.at(0), 0.1f);
 		ImGui::DragFloat3("Camera Center", &cameraCenter.x, 0.1f);
 	}
 
@@ -666,7 +683,7 @@ void RenderIMGUI()
 			code << name << ".SetAnimParam(" << model.transFactor.at(0) << ", " << model.transFactor.at(1) << ", " << model.transFactor.at(2) << ", " << model.rotFactor.at(0) << ", " << model.rotFactor.at(1) << ", " << model.rotFactor.at(2) << ", " << model.scaleFactor.at(0) << ", " << model.scaleFactor.at(1) << ", " << model.scaleFactor.at(2) << ");\n";
 		}
 
-		if(model.soundFileName != "")
+		if (model.soundFileName != "")
 			code << name << ".soundFileName = \"" << model.soundFileName << "\";\n";
 
 		if (model.animSoundFileName != "")
@@ -706,18 +723,13 @@ void RenderScene(void)
 	SetupCamera();
 	SetupLights();
 
-	glPushMatrix();
-	glColor3f(1.0, 0, 0);
-	glutWireCube(0.5f);
-	glTranslatef(cameraCenter.x, cameraCenter.y, cameraCenter.z);
-	glPopMatrix();
-
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glClearColor(0.2f, 0.5f, 0.8f, 1.0f);
 
 	for (auto& model : models)
 		model.Render();
 
+	RenderUI();
 
 	RenderIMGUI();
 }
@@ -868,7 +880,7 @@ bool CheckCoinsCollision()
 			model->hidden = true;
 		}
 
-		if(lastHit != nullptr)
+		if (lastHit != nullptr)
 			coinsVal += 10;
 		lastHit = nullptr;
 		return true;
@@ -969,7 +981,7 @@ bool CheckPrescriptionCollision()
 					if (objs.at(model.group).name == "door")
 					{
 						model.collider = false;
-						model.Rotate(0,150,0);
+						model.Rotate(0, 150, 0);
 						model.Translate(2.14, 0, -0.34);
 						model.soundFileName = "prescription.wav";
 					}
@@ -995,10 +1007,10 @@ void CheckAllCollisions()
 		return;
 	if (!CheckCoinsCollision())
 		if (!CheckKeyCollision1())
-		   if (!CheckKeyCollision2())
-			if (!CheckDeskCollision())
-				if (!CheckPrescriptionCollision())
-					    CheckHealthKitCollision();
+			if (!CheckKeyCollision2())
+				if (!CheckDeskCollision())
+					if (!CheckPrescriptionCollision())
+						CheckHealthKitCollision();
 }
 
 void key(int key, int x, int y)
@@ -1206,12 +1218,12 @@ int main(int argc, char** argv)
 	glutTimerFunc(10, HistoryTimer, 10);
 	SortObjects();
 	std::atexit(WriteHeaderBackup);
-	
+
 
 	for (auto& model : models)
 	{
-		if(model.GetPrimitive() == Primitive::WireCube)
-		model.collider = true;
+		if (model.GetPrimitive() == Primitive::WireCube)
+			model.collider = true;
 		model.hidden = false;
 		if (model.group != -1)
 		{
