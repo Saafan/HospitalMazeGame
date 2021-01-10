@@ -78,7 +78,7 @@ public:
 	std::string id = "0";
 	bool uniformScale = false;
 	bool hidden = false;
-
+	bool froom = true;
 	bool selected = false;
 	bool collider = false;
 	bool animated = false;

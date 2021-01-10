@@ -43,7 +43,7 @@ int scoreVal = 0;
 int healthVal = 100;
 std::string msgStr;
 UI coins({ 1.00f, 0.0f, 0.0f }, "Coins: ", & coinsVal, { 1.2f, 2.2f, 0.0f });
-UI msg({ 1.00f, 0.0f, 0.0f }, &msgStr, nullptr, { 1.2f, 2.2f, 0.0f });
+UI msg({ 1.00f, 0.0f, 0.0f }, & msgStr, nullptr, { 1.2f, 2.2f, 0.0f });
 UI health({ 1.00f, 0.0f, 0.0f }, "Health: ", & healthVal, { 1.2f, 1.90f, 0.0f }, "%%");
 
 int WIDTH = 1100;
@@ -71,7 +71,9 @@ std::vector<Model> models;
 std::vector<std::vector<Model>> modelsHistory;
 
 bool firstPerson = true;
-
+bool colkey2 = false;
+bool won = false;
+bool over = false;
 
 vec3 GetCharacterPos()
 {
@@ -101,7 +103,6 @@ void SetupCamera()
 	glLoadIdentity();
 	//glOrtho(-0.5, 0.5, -0.5, 0.5, -1, 1);
 	gluPerspective(60, 16 / 9, 0.001, 100);
-	msgStr += "q";
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
 
@@ -156,6 +157,7 @@ void ShowModelAttributes(Model& model, std::string name)
 	if (ImGui::CollapsingHeader(name.c_str()))
 	{
 		ImGui::Checkbox(std::string("Hide " + model.id).c_str(), &(model.hidden));
+		ImGui::Checkbox(std::string("First Room" + model.id).c_str(), &(model.froom));
 		ImGui::Checkbox(std::string("Uniform Scale " + model.id).c_str(), &model.uniformScale);
 		ImGui::ColorEdit3(std::string("Color " + model.id).c_str(), &model.color.R);
 		ImGui::DragFloat3(std::string("Position " + model.id).c_str(), &model.position.at(0), 0.01f);
@@ -350,6 +352,8 @@ void SelectUnSelectGroup(int i)
 
 void MouseMove()
 {
+	if (won || over)
+		return;
 	ImGuiIO& io = ImGui::GetIO();
 	mouseDeltX = io.MouseDelta.x / 100.0f;
 	mouseDeltY = io.MouseDelta.y / 100.0f;
@@ -673,6 +677,9 @@ void RenderIMGUI()
 		if (model.color.R != 1 || model.color.G != 1 || model.color.B != 1)
 			code << name << ".SetColor(" << model.color.R << ", " << model.color.G << ", " << model.color.B << ");\n";
 
+		if (!model.froom)
+			code << name << ".froom = " << "false;\n";
+
 		if (model.collider)
 			code << name << ".collider = " << "true;\n";
 
@@ -725,11 +732,20 @@ void RenderScene(void)
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glClearColor(0.2f, 0.5f, 0.8f, 1.0f);
 
+	
+
+	if (won)
+		msgStr = "HEALTH =100%, CONGRATULATIONS YOU SAVED HIM!";
+
+	if (!won && over) {
+		msgStr = "HEALTH IS UP,GAME OVER";
+
+	}
+
 	for (auto& model : models)
 		model.Render();
-
 	RenderUI();
-
+	
 	RenderIMGUI();
 }
 
@@ -761,8 +777,8 @@ Model* CheckCollision(float x, float z)
 static int historyNum = 0;
 void key(unsigned char key, int x, int y)
 {
-
-
+	if (won || over)
+		return;
 	ImGuiIO& io = ImGui::GetIO();
 	io.AddInputCharacter(key);
 	if (key == '[')
@@ -848,8 +864,8 @@ void key(unsigned char key, int x, int y)
 			lastHit->PlayAnimSoundOnce();
 			for (auto& model : objs.at(lastHit->group).obj)
 			{
-			//	model->animat
-			//	model->animateNow = true;
+				//	model->animat
+				//	model->animateNow = true;
 			}
 		}
 
@@ -928,6 +944,9 @@ bool CheckKeyCollision2()
 		{
 			model->collider = false;
 			model->hidden = true;
+			colkey2 = true;
+			
+
 		}
 		for (auto& model : models)
 		{
@@ -949,21 +968,95 @@ bool CheckKeyCollision2()
 
 bool CheckHealthKitCollision()
 {
-	std::string name = "HealthKit";
+	std::string name = "drbed";
 	if (objs.at(lastHit->group).name.substr(0, name.length()) == name)
 	{
-		//#TODO HealthKit Collision Logic	
+		if (colkey2) {
+			
+			won = true;
+			healthVal = 100;
+
+		}
+
+		return true;
+	}
+
+
+	return false;
+}
+
+bool firstTime = false;
+
+
+bool CheckChainCollision()
+{
+	std::string name = "chain";
+	if (objs.at(lastHit->group).name.substr(0, name.length()) == name)
+	{
+		msgStr = "take the key to free the doctor";
+
 		return true;
 	}
 	return false;
 }
 
-bool CheckDeskCollision()
+
+bool CheckdeskCollision()
 {
-	std::string name = "Desk";
+	std::string name = "dranddesk";
 	if (objs.at(lastHit->group).name.substr(0, name.length()) == name)
 	{
-		//#TODO Desk Collision Logic	
+		msgStr = "take the healthkit to WIN";
+
+		return true;
+	}
+	return false;
+}
+
+
+bool CheckHidCollision()
+{
+	std::string name = "hiddenwall";
+	if (objs.at(lastHit->group).name.substr(0, name.length()) == name)
+	{
+		for (auto& model : objs.at(lastHit->group).obj)
+		{
+			model->collider = false;
+		}
+		if(!firstTime)
+		for (auto& model : models)
+		{
+			if (model.group != -1) {
+
+				if ((objs.at(model.group).name != "Character"))
+				{
+					model.hidden = !model.hidden;
+						firstTime = true;
+				}
+
+				for (auto& model : models)
+				{
+					if (model.GetPrimitive() == Primitive::WireCube) {
+						model.hidden = true;
+					}
+				}
+
+
+				if (objs.at(model.group).name == "Group340")
+					objs.at(model.group).obj.at(0)->collider = true;
+
+				if ((objs.at(model.group).name == "coin1") ||
+					(objs.at(model.group).name == "coin2") || (objs.at(model.group).name == "coin3")
+					|| (objs.at(model.group).name == "coin4") || (objs.at(model.group).name == "coin5")
+					|| (objs.at(model.group).name == "coin6") || (objs.at(model.group).name == "coin7"))
+
+					model.hidden = true;
+			}
+
+
+		}
+
+
 		return true;
 	}
 	return false;
@@ -983,17 +1076,15 @@ bool CheckPrescriptionCollision()
 				{
 					if (objs.at(model.group).name == "door")
 					{
+						if (model.collider)
+							PlaySound("sounds/prescription.wav", NULL, SND_ASYNC);
 						model.collider = false;
 						model.Rotate(0, 150, 0);
 						model.Translate(2.14, 0, -0.34);
-						model.soundFileName = "prescription.wav";
-					}
-					if (objs.at(model.group).name == "hidee")
-					{
-						model.collider = false;
-						model.hidden = true;
 
 					}
+
+
 				}
 			}
 		}
@@ -1004,6 +1095,8 @@ bool CheckPrescriptionCollision()
 	return false;
 }
 
+
+
 void CheckAllCollisions()
 {
 	if (lastHit == nullptr || lastHit->group == -1)
@@ -1011,13 +1104,18 @@ void CheckAllCollisions()
 	if (!CheckCoinsCollision())
 		if (!CheckKeyCollision1())
 			if (!CheckKeyCollision2())
-				if (!CheckDeskCollision())
+				if (!CheckHidCollision())
 					if (!CheckPrescriptionCollision())
-						CheckHealthKitCollision();
+						if (!CheckHealthKitCollision())
+							if (!CheckChainCollision())
+								   CheckdeskCollision();
 }
 
 void key(int key, int x, int y)
 {
+
+	if (won || over)
+		return;
 	ImGuiIO& io = ImGui::GetIO();
 	io.AddInputCharacter(key + 256);
 
@@ -1178,11 +1276,58 @@ void HistoryTimer(int value)
 
 void Timer(int value) {
 
-	healthVal = healthVal - 2;
+	
+	angle += 10;
+
+	for (auto& model : models)
+	{
+		if (model.group != -1)
+		{
+
+			if ((objs.at(model.group).name == "coin1") ||
+				(objs.at(model.group).name == "coin2") || (objs.at(model.group).name == "coin3")
+				|| (objs.at(model.group).name == "coin4") || (objs.at(model.group).name == "coin5")
+				|| (objs.at(model.group).name == "coin6") || (objs.at(model.group).name == "coin7")) {
+
+				model.Rotate(0, angle, 0);
+			}
+			if ((objs.at(model.group).name == "key1") ||
+				(objs.at(model.group).name == "key2"))
+			{
+				model.Rotate(0, angle, 90);
+			}
+		}
+
+	}
 
 
-	glutTimerFunc(2000, Timer, 2000);
+	glutTimerFunc(70, Timer, 70);
 }
+
+
+void Timer2(int value) {
+	if (healthVal <= 0) {
+		healthVal = 0;
+	}
+	else {
+
+		healthVal = healthVal - 4;
+	}
+	if (healthVal == 0) {
+		won = false;
+		if (!over)
+			PlaySound("sounds/lose.wav", NULL, SND_ASYNC);
+
+		over = true;
+		
+		
+		
+
+	}
+
+	glutTimerFunc(2000, Timer2, 2000);
+}
+
 
 
 void WriteHeaderBackup()
@@ -1232,7 +1377,6 @@ int main(int argc, char** argv)
 	SortObjects();
 	std::atexit(WriteHeaderBackup);
 
-
 	for (auto& model : models)
 	{
 		if (model.GetPrimitive() == Primitive::WireCube)
@@ -1259,8 +1403,28 @@ int main(int argc, char** argv)
 				objs.at(model.group).obj.at(1)->Translate(2.35, 0.870, 0.04);
 				objs.at(model.group).obj.at(1)->Rotate(0, 90, 0);
 			}
+
 		}
 	}
+
+
+	for (auto& model : models)
+	{
+		if (model.group != -1)
+			if (objs.at(model.group).name == "Group340") {
+             objs.at(model.group).obj.at(0)->collider = false;
+			// model.hidden = true;
+
+			}
+
+		if (!model.froom)
+			model.hidden = true;
+
+		if (model.GetPrimitive()==Primitive::WireCube) {
+			model.hidden = true;
+		}
+	}
+
 
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_LIGHTING);
@@ -1273,7 +1437,8 @@ int main(int argc, char** argv)
 	LightModel baseLight(0);
 	baseLight.SetPosition(5.6f, 10.0f, 7.5f);
 	lights.push_back(baseLight);
-	glutTimerFunc(2000, Timer, 2000);
+	glutTimerFunc(70, Timer, 70);
+	glutTimerFunc(2000, Timer2, 2000);
 	glutMainLoop();
 
 	// Cleanup
