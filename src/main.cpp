@@ -210,6 +210,7 @@ void ShowModelAttributes(Model& model, std::string name)
 		if (model.GetPrimitive() == Primitive::WireCube)
 		{
 			ImGui::Checkbox(std::string("Animate Within " + model.id).c_str(), &model.animated);
+			ImGui::Checkbox(std::string("Collider " + model.id).c_str(), &model.collider);
 			if (ImGui::CollapsingHeader(std::string("Sound: " + name).c_str()))
 			{
 				static char tempBuf0[60] = { 0 };
@@ -858,7 +859,7 @@ void key(unsigned char key, int x, int y)
 
 bool CheckCoinsCollision()
 {
-	std::string name = "Coins";
+	std::string name = "coin";
 	if (objs.at(lastHit->group).name.substr(0, name.length()) == name)
 	{
 		for (auto& model : objs.at(lastHit->group).obj)
@@ -867,19 +868,64 @@ bool CheckCoinsCollision()
 			model->hidden = true;
 		}
 
-		std::cout << "Hit coins!" << std::endl;
-		coinsVal++;
+		if(lastHit != nullptr)
+			coinsVal += 10;
+		lastHit = nullptr;
 		return true;
 	}
 	return false;
 }
 
-bool CheckKeyCollision()
+bool CheckKeyCollision1()
 {
-	std::string name = "Key";
+	std::string name = "key1";
 	if (objs.at(lastHit->group).name.substr(0, name.length()) == name)
 	{
-		//#TODO Key Collision Logic	
+		for (auto& model : objs.at(lastHit->group).obj)
+		{
+			model->collider = false;
+			model->hidden = true;
+		}
+		for (auto& model : models)
+		{
+
+			if (model.group != -1)
+			{
+				if (objs.at(model.group).name == "smallBridge")
+				{
+					model.collider = false;
+					model.hidden = true;
+				}
+			}
+		}
+
+		return true;
+	}
+	return false;
+}
+
+bool CheckKeyCollision2()
+{
+	std::string name = "key2";
+	if (objs.at(lastHit->group).name.substr(0, name.length()) == name)
+	{
+		for (auto& model : objs.at(lastHit->group).obj)
+		{
+			model->collider = false;
+			model->hidden = true;
+		}
+		for (auto& model : models)
+		{
+
+			if (model.group != -1)
+			{
+				if (objs.at(model.group).name == "chain")
+				{
+					model.collider = false;
+					model.hidden = true;
+				}
+			}
+		}
 
 		return true;
 	}
@@ -910,10 +956,34 @@ bool CheckDeskCollision()
 
 bool CheckPrescriptionCollision()
 {
-	std::string name = "Prescription";
+	std::string name = "prescription";
 	if (objs.at(lastHit->group).name.substr(0, name.length()) == name)
 	{
-		//#TODO Prescription Collision Logic	
+
+		for (auto& model : models)
+		{
+			if (coinsVal >= 50) {
+
+				if (model.group != -1)
+				{
+					if (objs.at(model.group).name == "door")
+					{
+						model.collider = false;
+						model.Rotate(0,150,0);
+						model.Translate(2.14, 0, -0.34);
+						model.soundFileName = "prescription.wav";
+					}
+					if (objs.at(model.group).name == "hidee")
+					{
+						model.collider = false;
+						model.hidden = true;
+
+					}
+				}
+			}
+		}
+
+
 		return true;
 	}
 	return false;
@@ -924,12 +994,12 @@ void CheckAllCollisions()
 	if (lastHit == nullptr || lastHit->group == -1)
 		return;
 	if (!CheckCoinsCollision())
-		if (!CheckKeyCollision())
+		if (!CheckKeyCollision1())
+		   if (!CheckKeyCollision2())
 			if (!CheckDeskCollision())
 				if (!CheckPrescriptionCollision())
-					CheckHealthKitCollision();
+					    CheckHealthKitCollision();
 }
-
 
 void key(int key, int x, int y)
 {
@@ -944,13 +1014,13 @@ void key(int key, int x, int y)
 
 
 	bool pass = false;
-	const float limit = 0.2;
+	const float limit = 0.2f;
 	const float speed = 0.1f;
 	for (auto& model : models)
 		if (model.group != -1)
 			if (objs.at(model.group).name == "Character")
 			{
-				if ((key == GLUT_KEY_DOWN && !CheckCollision(0.0f, limit)) || (key == GLUT_KEY_UP && !CheckCollision(0.0f, -limit)) || (key == GLUT_KEY_LEFT && !CheckCollision(-limit, 0.0f)) || (key == GLUT_KEY_RIGHT && !CheckCollision(limit, 0.0f)))
+				if ((key == GLUT_KEY_DOWN && CheckCollision(-limit, 0.0f) == nullptr) || (key == GLUT_KEY_UP && CheckCollision(limit, 0.0f) == nullptr) || (key == GLUT_KEY_LEFT && CheckCollision(0.0f, -limit) == nullptr) || (key == GLUT_KEY_RIGHT && CheckCollision(0.0f, limit) == nullptr))
 					pass = true;
 				if (pass)
 					if (key == GLUT_KEY_UP) {
@@ -1100,7 +1170,6 @@ int main(int argc, char** argv)
 {
 	srand(time(0));
 	float R = (float)((rand() % 100) / 100.0f);
-	std::cout << R << std::endl;
 	glutInit(&argc, argv);
 	glutInitDisplayMode(GLUT_DEPTH | GLUT_DOUBLE | GLUT_RGB);
 	glutInitWindowPosition(100, 100);
@@ -1133,9 +1202,40 @@ int main(int argc, char** argv)
 	glutKeyboardFunc(key);
 	glutSpecialFunc(key);
 	Generate(100);
+
 	glutTimerFunc(10, HistoryTimer, 10);
 	SortObjects();
 	std::atexit(WriteHeaderBackup);
+	
+
+	for (auto& model : models)
+	{
+		if(model.GetPrimitive() == Primitive::WireCube)
+		model.collider = true;
+		model.hidden = false;
+		if (model.group != -1)
+		{
+			if (objs.at(model.group).name == "Character")
+			{
+				objs.at(model.group).obj.at(0)->position.at(0) = 1.13;
+				objs.at(model.group).obj.at(0)->position.at(1) = 0;
+				objs.at(model.group).obj.at(0)->position.at(2) = -1.1;
+
+				objs.at(model.group).obj.at(1)->position.at(0) = 1.1;
+				objs.at(model.group).obj.at(1)->position.at(1) = 0.64;
+				objs.at(model.group).obj.at(1)->position.at(2) = -1.08;
+			}
+
+			if (objs.at(model.group).name == "door")
+			{
+				objs.at(model.group).obj.at(0)->Translate(2.33, 0, 0.04);
+				objs.at(model.group).obj.at(0)->Rotate(0, 90, 0);
+
+				objs.at(model.group).obj.at(1)->Translate(2.35, 0.870, 0.04);
+				objs.at(model.group).obj.at(1)->Rotate(0, 90, 0);
+			}
+		}
+	}
 
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_LIGHTING);
