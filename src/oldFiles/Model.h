@@ -1,5 +1,6 @@
 #pragma once
 #include "Renderer.h"
+
 struct vec3
 {
 	float x = 0.0f;
@@ -16,8 +17,7 @@ enum class Primitive
 	Teapot = 4,
 	Sphere = 5,
 	WireCube,
-	Model,
-	WireCone
+	Model
 };
 
 struct Color
@@ -57,7 +57,6 @@ public:
 	void CreateCylinder(float baseRadius = 0.5f, float topRadius = 0.5f, float height = 0.5f, float slices = 10, float stacks = 10);
 	void CreateCube(float size = 0.5f);
 	void CreateWireCube(float size = 0.5f);
-	void CreateWireCone(float base, float height, int slices, int stacks);
 	void CreateCone(float base = 0.5f, float height = 0.5f, int slices = 10, int stacks = 10);
 	void CreateSphere(float radius = 0.5f, float slices = 10, float stacks = 10);
 	void CreateTeapot(float size = 0.5f);
@@ -79,7 +78,7 @@ public:
 	std::string id = "0";
 	bool uniformScale = false;
 	bool hidden = false;
-	bool froom = true;
+
 	bool selected = false;
 	bool collider = false;
 	bool animated = false;
@@ -91,7 +90,7 @@ public:
 
 	Model_3DS* model3D = nullptr;
 
-	std::vector<float> position{ 0.0f, 0.0f, 0.0f};
+	std::vector<float> position{ 0.0f, 0.0f, 0.0f };
 	std::vector<float> scale{ 1.0f, 1.0f, 1.0f };
 	std::vector<float> rotate{ 0.0f, 0.0f, 0.0f };
 	std::vector<float> groupTrans{ 0.0f, 0.0f, 0.0f };
@@ -106,10 +105,10 @@ public:
 	std::vector<float> positionAnim{ 0.0f, 0.0f, 0.0f };
 	std::vector<float> rotateAnim{ 0.0f, 0.0f, 0.0f };
 	std::vector<float> scaleAnim{ 0.0f, 0.0f, 0.0f };
+
+
 private:
 	Primitive prim;
-
-
 
 	void AssignVariables(Primitive prim = Primitive::Cube, float size = 0.0f, float radius = 0.0f, float outerRadius = 0.0f, int slices = 0, int slacks = 0);
 

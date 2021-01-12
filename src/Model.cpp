@@ -147,6 +147,13 @@ void Model::CreateWireCube(float size)
 	glutWireCube(size);
 }
 
+void Model::CreateWireCone(float base, float height, int slices, int stacks)
+{
+	AssignVariables(Primitive::WireCone, base, 0, height, slices, stacks);
+	prim = Primitive::WireCone;
+	glutWireCone(base, height, slices, stacks);
+}
+
 void Model::CreateTours(float innerRadius, float outerRadius, int sidesNum, int rings)
 {
 	AssignVariables(Primitive::Tours, innerRadius, 0, outerRadius, sidesNum, rings);
@@ -236,6 +243,10 @@ void Model::Render()
 
 	if (prim == Primitive::Cone)
 		CreateCone(size, modelHeight, slices, stacks);
+
+	if (prim == Primitive::WireCone)
+		CreateWireCone(size, modelHeight, slices, stacks);
+
 
 	if (prim == Primitive::Sphere)
 		CreateSphere(size, slices, stacks);

@@ -40,10 +40,8 @@ vec3 cameraCenter;
 
 int coinsVal = 0;
 int scoreVal = 0;
-int healthVal = 1000000000;
-std::string msgStr;
+int healthVal = 100;
 UI coins({ 1.00f, 0.0f, 0.0f }, "Coins: ", & coinsVal, { 1.2f, 2.2f, 0.0f });
-UI msg({ 1.00f, 0.0f, 0.0f }, & msgStr, nullptr, { 1.2f, 2.2f, 0.0f });
 UI health({ 1.00f, 0.0f, 0.0f }, "Health: ", & healthVal, { 1.2f, 1.90f, 0.0f }, "%%");
 
 int WIDTH = 1100;
@@ -71,9 +69,7 @@ std::vector<Model> models;
 std::vector<std::vector<Model>> modelsHistory;
 
 bool firstPerson = true;
-bool colkey2 = false;
-bool won = false;
-bool over = false;
+
 
 vec3 GetCharacterPos()
 {
@@ -103,6 +99,7 @@ void SetupCamera()
 	glLoadIdentity();
 	//glOrtho(-0.5, 0.5, -0.5, 0.5, -1, 1);
 	gluPerspective(60, 16 / 9, 0.001, 100);
+
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
 
@@ -157,7 +154,6 @@ void ShowModelAttributes(Model& model, std::string name)
 	if (ImGui::CollapsingHeader(name.c_str()))
 	{
 		ImGui::Checkbox(std::string("Hide " + model.id).c_str(), &(model.hidden));
-		ImGui::Checkbox(std::string("First Room" + model.id).c_str(), &(model.froom));
 		ImGui::Checkbox(std::string("Uniform Scale " + model.id).c_str(), &model.uniformScale);
 		ImGui::ColorEdit3(std::string("Color " + model.id).c_str(), &model.color.R);
 		ImGui::DragFloat3(std::string("Position " + model.id).c_str(), &model.position.at(0), 0.01f);
@@ -326,13 +322,11 @@ void RenderUI()
 	{
 		coins.Translate(cameraCenter.x, cameraCenter.y + 2.2f, cameraCenter.z);
 		health.Translate(cameraCenter.x, cameraCenter.y + 2.0f, cameraCenter.z);
-		msg.Translate(cameraCenter.x, cameraCenter.y + 1.8f, cameraCenter.z);
 	}
 
 
 	coins.Render();
 	health.Render();
-	msg.Render();
 
 	glEnable(GL_DEPTH_TEST);
 }
@@ -352,8 +346,6 @@ void SelectUnSelectGroup(int i)
 
 void MouseMove()
 {
-	if (won || over)
-		return;
 	ImGuiIO& io = ImGui::GetIO();
 	mouseDeltX = io.MouseDelta.x / 100.0f;
 	mouseDeltY = io.MouseDelta.y / 100.0f;
@@ -430,53 +422,33 @@ void RenderIMGUI()
 		if (ImGui::Button("Reset Light Setup"))
 			for (size_t i = 0; i < lights.size(); i++)
 				lightColor[0] = lightColor[1] = lightColor[2] = 1.0f;
-		if (!lights.empty())
-			ImGui::DragFloat4(std::string("World Ambient: ").c_str(), lights.at(0).modelAmbient, 0.01f);
+
 		for (size_t i = 0; i < lights.size(); i++)
 		{
 			if (ImGui::CollapsingHeader(std::string("Light " + std::to_string(i)).c_str()))
 			{
 				ImGui::Indent(20);
-				ImGui::DragFloat4(std::string("Light Group Position: " + std::to_string(i)).c_str(), lights.at(i).GroupTrans, 0.001f);
-				ImGui::SameLine();
-				if (ImGui::Button(std::string("Reset Group Position " + std::to_string(i)).c_str()))
-					lights.at(i).GroupTrans[0] = lights.at(i).GroupTrans[1] = lights.at(i).GroupTrans[2] = 0;
 				ImGui::ColorEdit3(std::string("Light Color: " + std::to_string(i)).c_str(), lights.at(i).diffuse);
-				ImGui::DragFloat4(std::string("Light Position: " + std::to_string(i)).c_str(), lights.at(i).position, 0.001f); ImGui::SameLine();
-				if (ImGui::Button(std::string("Reset Light Position " + std::to_string(i)).c_str()))
-					lights.at(i).position[0] = lights.at(i).position[1] = lights.at(i).position[2] = 0;
+				ImGui::DragFloat3(std::string("Light Position: " + std::to_string(i)).c_str(), lights.at(i).position, 0.1f);
 
-				ImGui::DragFloat4(std::string("Ambient: " + std::to_string(i)).c_str(), lights.at(i).ambient, 0.01f);
-				ImGui::DragFloat4(std::string("Specular: " + std::to_string(i)).c_str(), lights.at(i).specular, 0.01f);
-				ImGui::DragInt(std::string("Exponent: " + std::to_string(i)).c_str(), &lights.at(i).exponent, 1);
+				static int selectedType = 0;
+				ImGui::RadioButton("Exponent", &selectedType, 0);	ImGui::SameLine();
+				ImGui::RadioButton("Cutoff", &selectedType, 1);	ImGui::SameLine();
+				ImGui::RadioButton("Direction", &selectedType, 2);
 
-				ImGui::Checkbox(std::string("SpotLight: " + std::to_string(i)).c_str(), &lights.at(i).spotLight);
+				if (lights.at(i).type == LightType::EXPONENT)
+					ImGui::DragFloat(std::string("Exponent: " + std::to_string(i)).c_str(), &lights.at(i).exponent, 0.1f);
+				if (lights.at(i).type == LightType::CUTOFF)
+					ImGui::DragFloat(std::string("Cutoff Angle: " + std::to_string(i)).c_str(), &lights.at(i).angle, 0.1f);
+				if (lights.at(i).type == LightType::DIRECTION)
+					ImGui::DragFloat3(std::string("Direction: " + std::to_string(i)).c_str(), lights.at(i).direction, 0.1f);
 
-				lights.at(i).position[3] = selectedType;
-
-
-				ImGui::DragFloat3(std::string("Direction: " + std::to_string(i)).c_str(), lights.at(i).direction, 0.001f); ImGui::SameLine();
-				if (ImGui::Button(std::string("Reset Light Direction " + std::to_string(i)).c_str()))
-				lights.at(i).direction[1] = -1;
-				lights.at(i).direction[0] = lights.at(i).direction[2] = 0;
-				if (lights.at(i).spotLight)
-					ImGui::DragFloat(std::string("Cutoff Angle: " + std::to_string(i)).c_str(), &lights.at(i).angle, 0.5f);
-
-
-				if (ImGui::Button(std::string("Duplicate Light: " + std::to_string(i)).c_str()))
+				switch (selectedType)
 				{
-					LightModel newLight = lights.at(i);
-					newLight.lightIndex++;
-					lights.push_back(newLight);
-					break;
-				}
-
-				if (ImGui::Button(std::string("Delete Light: " + std::to_string(i)).c_str()))
-				{
-					glDisable(lights.at(i).lightIndex);
-					for (size_t q = 0; q < lights.size(); q++)
-						if (&lights.at(q) == &lights.at(i))
-							lights.erase(lights.begin() + q);
+				case 0: lights.at(i).type = LightType::EXPONENT; break;
+				case 1: lights.at(i).type = LightType::CUTOFF; break;
+				case 2: lights.at(i).type = LightType::DIRECTION; break;
+				default:
 					break;
 				}
 
@@ -697,9 +669,6 @@ void RenderIMGUI()
 		if (model.color.R != 1 || model.color.G != 1 || model.color.B != 1)
 			code << name << ".SetColor(" << model.color.R << ", " << model.color.G << ", " << model.color.B << ");\n";
 
-		if (!model.froom)
-			code << name << ".froom = " << "false;\n";
-
 		if (model.collider)
 			code << name << ".collider = " << "true;\n";
 
@@ -747,11 +716,12 @@ void RenderIMGUI()
 void RenderScene(void)
 {
 	SetupCamera();
+	SetupLights();
 
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glClearColor(0.2f, 0.5f, 0.8f, 1.0f);
 
-	SetupLights();
+
 
 	for (auto& model : models)
 	{
@@ -761,17 +731,6 @@ void RenderScene(void)
 		model.Render();
 	}
 
-
-	if (won)
-		msgStr = "HEALTH =100%, CONGRATULATIONS YOU SAVED HIM!";
-
-	if (!won && over) {
-		msgStr = "HEALTH IS UP,GAME OVER";
-
-	}
-
-	for (auto& model : models)
-		model.Render();
 	RenderUI();
 
 	RenderIMGUI();
@@ -805,8 +764,8 @@ Model* CheckCollision(float x, float z)
 static int historyNum = 0;
 void key(unsigned char key, int x, int y)
 {
-	if (won || over)
-		return;
+
+
 	ImGuiIO& io = ImGui::GetIO();
 	io.AddInputCharacter(key);
 	if (key == '[')
@@ -901,19 +860,22 @@ void key(unsigned char key, int x, int y)
 						lastHit->rotateAnim[i] = 0.0f;
 						lastHit->scaleAnim[i] = 0.0f;
 					}
-
+				
 			}
+
+
 			lastHit->PlayAnimSoundOnce();
 			lastHit->animateNow = true;
 			for (auto& model : objs.at(lastHit->group).obj)
 			{
+
 				model->transFactor = lastHit->transFactor;
 				model->rotFactor = lastHit->rotFactor;
 				model->scaleFactor = lastHit->scaleFactor;
+
 				model->animateNow = true;
 			}
 		}
-
 
 	if (key == 't')
 	{
@@ -990,9 +952,6 @@ bool CheckKeyCollision2()
 		{
 			model->collider = false;
 			model->hidden = true;
-			colkey2 = true;
-
-
 		}
 		for (auto& model : models)
 		{
@@ -1014,95 +973,21 @@ bool CheckKeyCollision2()
 
 bool CheckHealthKitCollision()
 {
-	std::string name = "drbed";
+	std::string name = "HealthKit";
 	if (objs.at(lastHit->group).name.substr(0, name.length()) == name)
 	{
-		if (colkey2) {
-
-			won = true;
-			healthVal = 100;
-
-		}
-
-		return true;
-	}
-
-
-	return false;
-}
-
-bool firstTime = false;
-
-
-bool CheckChainCollision()
-{
-	std::string name = "chain";
-	if (objs.at(lastHit->group).name.substr(0, name.length()) == name)
-	{
-		msgStr = "take the key to free the doctor";
-
+		//#TODO HealthKit Collision Logic	
 		return true;
 	}
 	return false;
 }
 
-
-bool CheckdeskCollision()
+bool CheckDeskCollision()
 {
-	std::string name = "dranddesk";
+	std::string name = "Desk";
 	if (objs.at(lastHit->group).name.substr(0, name.length()) == name)
 	{
-		msgStr = "take the healthkit to WIN";
-
-		return true;
-	}
-	return false;
-}
-
-
-bool CheckHidCollision()
-{
-	std::string name = "hiddenwall";
-	if (objs.at(lastHit->group).name.substr(0, name.length()) == name)
-	{
-		for (auto& model : objs.at(lastHit->group).obj)
-		{
-			model->collider = false;
-		}
-		if (!firstTime)
-			for (auto& model : models)
-			{
-				if (model.group != -1) {
-
-					if ((objs.at(model.group).name != "Character"))
-					{
-						model.hidden = !model.hidden;
-						firstTime = true;
-					}
-
-					for (auto& model : models)
-					{
-						if (model.GetPrimitive() == Primitive::WireCube) {
-							model.hidden = true;
-						}
-					}
-
-
-					if (objs.at(model.group).name == "Group340")
-						objs.at(model.group).obj.at(0)->collider = true;
-
-					if ((objs.at(model.group).name == "coin1") ||
-						(objs.at(model.group).name == "coin2") || (objs.at(model.group).name == "coin3")
-						|| (objs.at(model.group).name == "coin4") || (objs.at(model.group).name == "coin5")
-						|| (objs.at(model.group).name == "coin6") || (objs.at(model.group).name == "coin7"))
-
-						model.hidden = true;
-				}
-
-
-			}
-
-
+		//#TODO Desk Collision Logic	
 		return true;
 	}
 	return false;
@@ -1116,23 +1001,23 @@ bool CheckPrescriptionCollision()
 
 		for (auto& model : models)
 		{
-
-
 			if (coinsVal >= 50) {
 
 				if (model.group != -1)
 				{
 					if (objs.at(model.group).name == "door")
 					{
-						if (model.collider)
-							PlaySound("sounds/prescription.wav", NULL, SND_ASYNC);
 						model.collider = false;
 						model.Rotate(0, 150, 0);
 						model.Translate(2.14, 0, -0.34);
+						model.soundFileName = "prescription.wav";
+					}
+					if (objs.at(model.group).name == "hidee")
+					{
+						model.collider = false;
+						model.hidden = true;
 
 					}
-
-
 				}
 			}
 		}
@@ -1143,8 +1028,6 @@ bool CheckPrescriptionCollision()
 	return false;
 }
 
-
-
 void CheckAllCollisions()
 {
 	if (lastHit == nullptr || lastHit->group == -1)
@@ -1152,18 +1035,13 @@ void CheckAllCollisions()
 	if (!CheckCoinsCollision())
 		if (!CheckKeyCollision1())
 			if (!CheckKeyCollision2())
-				if (!CheckHidCollision())
+				if (!CheckDeskCollision())
 					if (!CheckPrescriptionCollision())
-						if (!CheckHealthKitCollision())
-							if (!CheckChainCollision())
-								CheckdeskCollision();
+						CheckHealthKitCollision();
 }
 
 void key(int key, int x, int y)
 {
-
-	if (won || over)
-		return;
 	ImGuiIO& io = ImGui::GetIO();
 	io.AddInputCharacter(key + 256);
 
@@ -1237,7 +1115,7 @@ void glut_display_func()
 
 void Generate(int value)
 {
-	GenerateModels(models, objs, lights);
+	GenerateModels(models, objs);
 }
 
 void WriteHeader()
@@ -1246,31 +1124,6 @@ void WriteHeader()
 	tm* ltm = localtime(&now);
 
 	std::stringstream groupCode;
-
-	for (auto& light : lights)
-	{
-		std::string lightName = "light" + std::to_string(light.lightIndex - GL_LIGHT0);
-		groupCode << "LightModel " << lightName << "(" << light.lightIndex - GL_LIGHT0 << ", " << light.angle << ");\n";
-
-		if (light.position[0] != 0 || light.position[1] != 0 || light.position[2] != 0)
-			groupCode << lightName << ".SetPosition(" << light.position[0] + light.GroupTrans[0] << ", " << light.position[1] + light.GroupTrans[1] << ", " << light.position[2] + light.GroupTrans[2] << ");\n";
-#include "Model.h"
-		if (light.ambient[0] != 0 || light.ambient[1] != 0 || light.ambient[2] != 0)
-			groupCode << lightName << ".SetAmbient(" << light.ambient[0] << ", " << light.ambient[1] << ", " << light.ambient[2] << ");\n";
-
-		if (light.diffuse[0] != 0 || light.diffuse[1] != 0 || light.diffuse[2] != 0)
-			groupCode << lightName << ".SetDiffuse(" << light.diffuse[0] << ", " << light.diffuse[1] << ", " << light.diffuse[2] << ");\n";
-
-		if (light.direction[0] != 0 || light.direction[1] != 0 || light.direction[2] != 0)
-			groupCode << lightName << ".SetDirection(" << light.direction[0] + light.GroupTrans[0] << ", " << light.direction[1] + light.GroupTrans[1] << ", " << light.direction[2] + light.GroupTrans[2] << ");\n";
-
-		if (!light.spotLight)
-			groupCode << lightName << ".spotLight = false);\n";
-
-		groupCode << "lights.push_back(" << lightName << ");\n";
-		groupCode << "\n";
-	}
-	groupCode << "\n";
 	for (size_t i = 0; i < objs.size(); i++)
 	{
 		std::string groupName = objs.at(i).name + std::to_string(i);
@@ -1299,7 +1152,7 @@ void WriteHeader()
 		std::ofstream myFile(pathStr);
 		if (myFile.is_open())
 		{
-			myFile << "#pragma once\n#include \"Model.h\"\n#include \"LightModel.h\"\nvoid GenerateModels(std::vector<Model>& models, std::vector<Object>& objs, std::vector<LightModel>& lights)\n{\n\n";
+			myFile << "#pragma once\n#include \"Model.h\"\nvoid GenerateModels(std::vector<Model>& models, std::vector<Object>& objs)\n{\n\n";
 			myFile << "//Backup at: " << 1900 + ltm->tm_year << "-" << ltm->tm_mon << "-" << ltm->tm_mday << " at: " << ltm->tm_hour << ":" << ltm->tm_min << ":" << ltm->tm_sec << "\n\n";
 			myFile << groupCode.str();
 			myFile << code.str();
@@ -1311,7 +1164,7 @@ void WriteHeader()
 		std::ofstream myFile("src/ModelsGenerator.h");
 		if (myFile.is_open())
 		{
-			myFile << "#pragma once\n#include \"Model.h\"\n#include \"LightModel.h\"\nvoid GenerateModels(std::vector<Model>& models, std::vector<Object>& objs, std::vector<LightModel>& lights)\n{\n\n";
+			myFile << "#pragma once\n#include \"Model.h\"\nvoid GenerateModels(std::vector<Model>& models, std::vector<Object>& objs)\n{\n\n";
 			myFile << groupCode.str();
 			myFile << code.str();
 			myFile << "}\n";
@@ -1345,63 +1198,6 @@ void HistoryTimer(int value)
 	}
 	glutTimerFunc(2000, HistoryTimer, 2000);
 }
-
-
-void Timer(int value) {
-
-
-	angle += 10;
-
-	for (auto& model : models)
-	{
-		if (model.group != -1)
-		{
-
-			if ((objs.at(model.group).name == "coin1") ||
-				(objs.at(model.group).name == "coin2") || (objs.at(model.group).name == "coin3")
-				|| (objs.at(model.group).name == "coin4") || (objs.at(model.group).name == "coin5")
-				|| (objs.at(model.group).name == "coin6") || (objs.at(model.group).name == "coin7")) {
-
-				model.Rotate(0, angle, 0);
-			}
-			if ((objs.at(model.group).name == "key1") ||
-				(objs.at(model.group).name == "key2"))
-			{
-				model.Rotate(0, angle, 90);
-			}
-		}
-
-	}
-
-
-	glutTimerFunc(70, Timer, 70);
-}
-
-
-void Timer2(int value) {
-	if (healthVal <= 0) {
-		healthVal = 0;
-	}
-	else {
-
-		healthVal = healthVal - 2;
-	}
-	if (healthVal == 0) {
-		won = false;
-		if (!over)
-			PlaySound("sounds/lose.wav", NULL, SND_ASYNC);
-
-		over = true;
-
-
-
-
-	}
-
-	glutTimerFunc(2000, Timer2, 2000);
-}
-
-
 
 void WriteHeaderBackup()
 {
@@ -1450,6 +1246,7 @@ int main(int argc, char** argv)
 	SortObjects();
 	std::atexit(WriteHeaderBackup);
 
+
 	for (auto& model : models)
 	{
 		if (model.GetPrimitive() == Primitive::WireCube)
@@ -1476,37 +1273,20 @@ int main(int argc, char** argv)
 				objs.at(model.group).obj.at(1)->Translate(2.35, 0.870, 0.04);
 				objs.at(model.group).obj.at(1)->Rotate(0, 90, 0);
 			}
-
 		}
 	}
-
-
-	for (auto& model : models)
-	{
-		if (model.group != -1)
-			if (objs.at(model.group).name == "Group340") {
-				objs.at(model.group).obj.at(0)->collider = false;
-				// model.hidden = true;
-
-			}
-
-		if (!model.froom)
-			model.hidden = true;
-
-		if (model.GetPrimitive() == Primitive::WireCube) {
-			model.hidden = true;
-		}
-	}
-
 
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_LIGHTING);
-	glEnable(GL_NORMALIZE);
 	glEnable(GL_LIGHT0);
+	glEnable(GL_NORMALIZE);
+	glEnable(GL_COLOR_MATERIAL);
+
 	glShadeModel(GL_SMOOTH);
 
-	glutTimerFunc(70, Timer, 70);
-	glutTimerFunc(2000, Timer2, 2000);
+	LightModel baseLight(0);
+	baseLight.SetPosition(5.6f, 10.0f, 7.5f);
+	lights.push_back(baseLight);
 	glutMainLoop();
 
 	// Cleanup

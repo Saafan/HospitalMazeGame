@@ -1,17 +1,10 @@
 #pragma once
 #include "Renderer.h"
 
-enum class LightType
-{
-	CUTOFF,
-	EXPONENT,
-	DIRECTION
-};
-
 class LightModel
 {
 public:
-	LightModel(int lightIndex = 0, LightType type = LightType::EXPONENT, float angle = 0.0f);
+	LightModel(int lightIndex = 0, float angle = 20.0f);
 
 	void EnableLight();
 	void DisableLight();
@@ -24,16 +17,23 @@ public:
 
 	int lightIndex;
 	float angle = 30.0f;
-	float exponent = 90.0f;
+	int exponent = 10;
+	bool spotLight = true;
+	bool viewWireBoxes = true;
 
-	LightType type = LightType::EXPONENT;
+	Model lightSourcePosition;
+	Model lightSourceDirection;
+	Model lightCone;
 
 	//#TODO To be Added
-	//GLfloat ambient[4]{ 1.0f, 1.0f, 1.0f, 1.0f };
-	//GLfloat specular[4]{ 1.0f, 1.0f, 1.0f, 1.0f };
+	GLfloat ambient[4]{ 0.1f, 0.1f, 0.1f, 1.0f };
+	GLfloat specular[4]{ 0.1f, 0.1f, 0.1f, 0.1f };
+	GLfloat modelAmbient[4]{ 0.1f, 0.1f, 0.1f, 1.0f };
+	GLfloat diffuse[4]{ 0.8f, 0.8f, 0.8f, 1.0f };
+	GLfloat position[4]{ 0.0f, 3.0f, 0.0f, (GLfloat)spotLight };
 
-	GLfloat diffuse[4]{ 1.0f, 1.0f, 1.0f, 1.0f };
-	GLfloat position[4]{ 5.6f, 10.0f, 7.5f, 1.0f };
+	GLfloat GroupTrans[3]{ 0.0f, 0.0f, 0.0f };
 
-	GLfloat direction[3]{ -1.0, 0.0, 0.0};
+	GLfloat direction[3]{ 0.0, -1.0, 0.0};
+	void SetDirection(float x, float y, float z);
 };
