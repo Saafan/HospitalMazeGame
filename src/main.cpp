@@ -1452,7 +1452,7 @@ void Timer2(int value) {
 	}
 	else {
 
-		healthVal = healthVal - 4;
+		healthVal = healthVal - 2;
 	}
 	if (healthVal == 0) {
 		won = false;
