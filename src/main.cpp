@@ -763,7 +763,7 @@ void RenderIMGUI()
 	if (updateData)
 		WriteHeader();
 
-	
+
 }
 
 void RenderScene(void)
@@ -1057,14 +1057,14 @@ bool CheckHealthKitCollision()
 		for (auto& model : models)
 		{
 			if (colkey2) {
+				if (!won)
+					PlaySound("sounds/doctor.wav", NULL, SND_ASYNC);
 				won = true;
 				healthVal = 100;
 
 			}
-			
-		}
 
-		
+		}
 
 		return true;
 	}
@@ -1096,7 +1096,7 @@ bool CheckdeskCollision()
 	{
 		msgStr = "take the healthkit to WIN";
 
-		
+
 		return true;
 	}
 	return false;
