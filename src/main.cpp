@@ -39,7 +39,8 @@ vec3 cameraCenter;
 
 int coinsVal = 0;
 int scoreVal = 0;
-int healthVal = 1000000000;
+int healthVal = 100;
+
 std::string msgStr;
 UI coins({ 1.00f, 0.0f, 0.0f }, "Coins: ", & coinsVal, { 1.2f, 2.2f, 0.0f });
 UI msg({ 1.00f, 0.0f, 0.0f }, & msgStr, nullptr, { 1.2f, 2.2f, 0.0f });
@@ -808,7 +809,7 @@ void RenderScene(void)
 	HEIGHT = glutGet(GLUT_WINDOW_HEIGHT);
 	glViewport(0, 0, WIDTH, HEIGHT);
 
-	RenderIMGUI();
+	//RenderIMGUI();
 }
 
 bool ModelsIntresect(Model& model1, Model& model2, float x, float z)
@@ -1451,7 +1452,7 @@ void Timer2(int value) {
 	}
 	else {
 
-		healthVal = healthVal - 2;
+		healthVal = healthVal - 4;
 	}
 	if (healthVal == 0) {
 		won = false;
