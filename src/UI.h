@@ -23,6 +23,7 @@ public:
 	void SetValue(int* value);
 
 	void Translate(float x, float y, float z);
+	void SetColor(float r, float g, float b);
 	void ChangeColor(std::vector<float> color);
 
 	void Print(float x, float y, float z, char* string);

@@ -48,6 +48,13 @@ void UI::Translate(float x, float y, float z)
 	this->pos.at(2) = z;
 }
 
+void UI::SetColor(float r, float g, float b)
+{
+	color.at(0) = r;
+	color.at(1) = g;
+	color.at(2) = b;
+}
+
 void UI::ChangeColor(std::vector<float> color)
 {
 	this->color = color;

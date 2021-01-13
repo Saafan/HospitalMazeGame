@@ -23,7 +23,7 @@ public:
 	float angle = 30.0f;
 	int exponent = 10;
 	bool spotLight = true;
-	bool viewWireBoxes = true;
+	bool viewWireBoxes = false;
 	bool enableLight = false;
 	bool firstRoom = true;
 

@@ -69,7 +69,7 @@ std::vector<Model> models;
 
 std::vector<std::vector<Model>> modelsHistory;
 
-bool firstPerson = true;
+bool firstPerson = false;
 bool colkey2 = false;
 bool won = false;
 bool over = false;
@@ -317,6 +317,7 @@ Model cubeDirection;
 
 void RenderUI()
 {
+	glDisable(GL_LIGHTING);
 	glDisable(GL_DEPTH_TEST);
 	if (firstPerson)
 	{
@@ -331,11 +332,17 @@ void RenderUI()
 	}
 
 
+	coins.SetColor(0.81f, 0.66f, 0.02f);
+	health.SetColor(0.01f, 0.38f, 0.08f);
+	msg.SetColor(0.8f, 0.8f, 0.8f);
+
+
 	coins.Render();
 	health.Render();
 	msg.Render();
 
 	glEnable(GL_DEPTH_TEST);
+	glEnable(GL_LIGHTING);
 }
 
 void ClearSelected()
@@ -375,12 +382,6 @@ float clearColor[3]{ 0.2f, 0.5f, 0.8f };
 
 void RenderIMGUI()
 {
-	CheckAllCollisions();
-	MouseMove();
-
-
-	cameraPos = GetCharacterPos();
-
 	static bool showCode = false;
 	ImGui::Begin("3D Editor");
 
@@ -762,9 +763,7 @@ void RenderIMGUI()
 	if (updateData)
 		WriteHeader();
 
-	WIDTH = glutGet(GLUT_WINDOW_WIDTH);
-	HEIGHT = glutGet(GLUT_WINDOW_HEIGHT);
-	glViewport(0, 0, WIDTH, HEIGHT);
+	
 }
 
 void RenderScene(void)
@@ -798,7 +797,18 @@ void RenderScene(void)
 		model.Render();
 
 	RenderUI();
-	RenderIMGUI();
+
+	CheckAllCollisions();
+	MouseMove();
+
+
+	cameraPos = GetCharacterPos();
+
+	WIDTH = glutGet(GLUT_WINDOW_WIDTH);
+	HEIGHT = glutGet(GLUT_WINDOW_HEIGHT);
+	glViewport(0, 0, WIDTH, HEIGHT);
+
+//	RenderIMGUI();
 }
 
 bool ModelsIntresect(Model& model1, Model& model2, float x, float z)
@@ -833,82 +843,85 @@ void key(unsigned char key, int x, int y)
 		return;
 	ImGuiIO& io = ImGui::GetIO();
 	io.AddInputCharacter(key);
-	if (key == '[')
-		if (modelsHistory.size() - historyNum > 0)
-		{
-			historyNum++;
-			models = modelsHistory[modelsHistory.size() - historyNum];
-		}
+	//if (key == '[')
+	//	if (modelsHistory.size() - historyNum > 0)
+	//	{
+	//		historyNum++;
+	//		models = modelsHistory[modelsHistory.size() - historyNum];
+	//	}
+	//
+	////#TODO Work on The Redo
+	//if (key == ']')
+	//	if (historyNum > 1)
+	//	{
+	//		historyNum--;
+	//		models = modelsHistory[(modelsHistory.size() - historyNum)];
+	//	}
+	//
+	//if (key == 'w')
+	//{
+	//	if (moveWithCenter)
+	//	{
+	//		cameraCenter.z -= 0.5f;
+	//		cameraPos.z -= 0.5f;
+	//	}
+	//	else
+	//		radius -= 0.5f;
+	//}
+	//if (key == 's')
+	//	if (moveWithCenter)
+	//	{
+	//		cameraCenter.z += 0.5f;
+	//		cameraPos.z += 0.5f;
+	//	}
+	//	else
+	//		radius += 0.5f;
+	//
+	//if (key == 'a')
+	//	if (moveWithCenter)
+	//	{
+	//		cameraCenter.x -= 0.5f;
+	//		cameraPos.x -= 0.5f;
+	//	}
+	//	else
+	//		angle -= 5.0f;
+	//
+	//if (key == 'd')
+	//	if (moveWithCenter)
+	//	{
+	//		cameraCenter.x += 0.5f;
+	//		cameraPos.x += 0.5f;
+	//	}
+	//	else
+	//		angle += 5.0f;
 
-	//#TODO Work on The Redo
-	if (key == ']')
-		if (historyNum > 1)
-		{
-			historyNum--;
-			models = modelsHistory[(modelsHistory.size() - historyNum)];
-		}
+	//if (key == 'q')
+	//	cameraPos.y += 0.5f;
+	//if (key == 'e')
+	//	cameraPos.y -= 0.5f;
 
-	if (key == 'w')
-	{
-		if (moveWithCenter)
-		{
-			cameraCenter.z -= 0.5f;
-			cameraPos.z -= 0.5f;
-		}
-		else
-			radius -= 0.5f;
-	}
-	if (key == 's')
-		if (moveWithCenter)
-		{
-			cameraCenter.z += 0.5f;
-			cameraPos.z += 0.5f;
-		}
-		else
-			radius += 0.5f;
+	//if (key == 'i')
+	//	cameraCenter.z -= 0.1f;
+	//if (key == 'k')
+	//	cameraCenter.z += 0.1f;
 
-	if (key == 'a')
-		if (moveWithCenter)
-		{
-			cameraCenter.x -= 0.5f;
-			cameraPos.x -= 0.5f;
-		}
-		else
-			angle -= 5.0f;
+	//if (key == 'j')
+	//	cameraCenter.x -= 0.1f;
+	//if (key == 'l')
+	//	cameraCenter.x += 0.1f;
 
-	if (key == 'd')
-		if (moveWithCenter)
-		{
-			cameraCenter.x += 0.5f;
-			cameraPos.x += 0.5f;
-		}
-		else
-			angle += 5.0f;
+	//if (key == 'z')
+	//	for (auto& model : models)
+	//		if (model.selected)
+	//			model.TranslateAccum(0, 0.1, 0);
+	//
+	//if (key == 'x')
+	//	for (auto& model : models)
+	//		if (model.selected)
+	//			model.TranslateAccum(0, -0.1, 0);
 
 	if (key == 'q')
-		cameraPos.y += 0.5f;
-	if (key == 'e')
-		cameraPos.y -= 0.5f;
-
-	if (key == 'i')
-		cameraCenter.z -= 0.1f;
-	if (key == 'k')
-		cameraCenter.z += 0.1f;
-
-	if (key == 'j')
-		cameraCenter.x -= 0.1f;
-	if (key == 'l')
-		cameraCenter.x += 0.1f;
-
-	if (key == 'z')
-		for (auto& model : models)
-			if (model.selected)
-				model.TranslateAccum(0, 0.1, 0);
-
-	if (key == 'x')
-		for (auto& model : models)
-			if (model.selected)
-				model.TranslateAccum(0, -0.1, 0);
+		firstPerson = !firstPerson;
 
 	if (key == 'r')
 		if (lastHit != nullptr && lastHit->collider && lastHit->animated)
@@ -939,23 +952,23 @@ void key(unsigned char key, int x, int y)
 		}
 
 
-	if (key == 't')
-	{
-		angle = -45.11f;
-		radius = 1.5f;
-	}
-
-	if (key == 'y')
-	{
-		angle = -120.11f;
-		radius = 5.5f;
-	}
-
-	if (key == 'u')
-	{
-		angle = 7.11f;
-		radius = -7.5f;
-	}
+	//if (key == 't')
+	//{
+	//	angle = -45.11f;
+	//	radius = 1.5f;
+	//}
+	//
+	//if (key == 'y')
+	//{
+	//	angle = -120.11f;
+	//	radius = 5.5f;
+	//}
+	//
+	//if (key == 'u')
+	//{
+	//	angle = 7.11f;
+	//	radius = -7.5f;
+	//}
 }
 
 bool CheckCoinsCollision()
