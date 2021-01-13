@@ -371,6 +371,7 @@ void MouseMove()
 }
 
 
+float clearColor[3]{ 0.2f, 0.5f, 0.8f };
 
 void RenderIMGUI()
 {
@@ -384,6 +385,9 @@ void RenderIMGUI()
 	ImGui::Begin("3D Editor");
 
 	ImGui::Checkbox("Lock Mouse", &mouseLock);
+
+
+	ImGui::ColorEdit3("Clear Color: ", clearColor);
 
 	if (ImGui::Button("Unselect All"))
 		ClearSelected();
@@ -768,7 +772,7 @@ void RenderScene(void)
 	SetupCamera();
 
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	glClearColor(0.2f, 0.5f, 0.8f, 1.0f);
+	glClearColor(clearColor[0], clearColor[1], clearColor[2], 1.0f);
 
 	SetupLights();
 
@@ -1097,9 +1101,10 @@ bool CheckHidCollision()
 					if ((objs.at(model.group).name != "Character"))
 					{
 						model.hidden = !model.hidden;
-						for (auto& light : lights)
-							light.enableLight = !light.enableLight;
-						
+						if (!firstTime)
+							for (auto& light : lights)
+								light.enableLight = !light.enableLight;
+
 						firstTime = true;
 					}
 

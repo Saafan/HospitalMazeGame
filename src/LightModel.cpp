@@ -129,12 +129,12 @@ void LightModel::Render()
 	glLightf(lightIndex, GL_SPOT_CUTOFF, angle);
 
 	glLightf(lightIndex, GL_SPOT_EXPONENT, exponent);
-	float totalDirection[3] = { direction[0] + std::sin(animateSource[0]) * animRadius[0] + GroupTrans[0] , direction[1] + std::sin(animateSource[1]) * animRadius[1] + GroupTrans[1] , direction[2] + std::sin(animateSource[2]) * animRadius[2] + GroupTrans[2] };
+	float totalDirection[3] = { direction[0] + sin(animateSource[0]) * animRadius[0] + GroupTrans[0] , direction[1] + sin(animateSource[1]) * animRadius[1] + GroupTrans[1] , direction[2] + sin(animateSource[2]) * animRadius[2] + GroupTrans[2] };
 	glLightfv(lightIndex, GL_SPOT_DIRECTION, totalDirection);
 	for (size_t i = 0; i < 3; i++)
 		if (animColor[i])
 			animColorFactor[i] += io.DeltaTime * lightChangeSpeed;
-	float totalDiffuse[4]{ diffuse[0] + sin(animColorFactor[0]) / 2, diffuse[1] + sin(animColorFactor[1]) / 2, diffuse[2] + sin(animColorFactor[2]) / 2, diffuse[3] };
+	float totalDiffuse[4]{ diffuse[0] + sin(animColorFactor[0]/0.95f) , diffuse[1] + sin(animColorFactor[1] / 0.9f) , diffuse[2] + sin(animColorFactor[2] / 0.85f) , diffuse[3] };
 	glLightfv(lightIndex, GL_DIFFUSE, totalDiffuse);
 	//glLightfv(lightIndex, GL_AMBIENT, ambient);
 	glLightfv(lightIndex, GL_SPECULAR, specular);
