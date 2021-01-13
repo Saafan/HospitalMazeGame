@@ -378,7 +378,7 @@ void MouseMove()
 }
 
 
-float clearColor[3]{ 0.2f, 0.5f, 0.8f };
+float clearColor[3]{ 0.215f, 0.308f, 0.402f };
 
 void RenderIMGUI()
 {
@@ -785,9 +785,9 @@ void RenderScene(void)
 	for (auto& light : lights)
 		light.AnimateLights();
 
-	if (won)
+	if (won) {
 		msgStr = "HEALTH =100%, CONGRATULATIONS YOU SAVED HIM!";
-
+	}
 	if (!won && over) {
 		msgStr = "HEALTH IS UP,GAME OVER";
 
@@ -1054,12 +1054,17 @@ bool CheckHealthKitCollision()
 	std::string name = "drbed";
 	if (objs.at(lastHit->group).name.substr(0, name.length()) == name)
 	{
-		if (colkey2) {
+		for (auto& model : models)
+		{
+			if (colkey2) {
+				won = true;
+				healthVal = 100;
 
-			won = true;
-			healthVal = 100;
-
+			}
+			
 		}
+
+		
 
 		return true;
 	}
@@ -1091,6 +1096,7 @@ bool CheckdeskCollision()
 	{
 		msgStr = "take the healthkit to WIN";
 
+		
 		return true;
 	}
 	return false;
@@ -1479,7 +1485,7 @@ int main(int argc, char** argv)
 	glutInitWindowPosition(100, 100);
 	glutInitWindowSize(WIDTH, HEIGHT);
 
-	glutCreateWindow("Hospital Game");
+	glutCreateWindow("Hospital Maze");
 
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glEnable(GL_BLEND);
@@ -1520,13 +1526,13 @@ int main(int argc, char** argv)
 		{
 			if (objs.at(model.group).name == "Character")
 			{
-				objs.at(model.group).obj.at(0)->position.at(0) = 1.13;
+				objs.at(model.group).obj.at(0)->position.at(0) = -2.28;
 				objs.at(model.group).obj.at(0)->position.at(1) = 0;
-				objs.at(model.group).obj.at(0)->position.at(2) = -1.1;
+				objs.at(model.group).obj.at(0)->position.at(2) = -0.61;
 
-				objs.at(model.group).obj.at(1)->position.at(0) = 1.1;
-				objs.at(model.group).obj.at(1)->position.at(1) = 0.64;
-				objs.at(model.group).obj.at(1)->position.at(2) = -1.08;
+				objs.at(model.group).obj.at(1)->position.at(0) = -2.28;
+				objs.at(model.group).obj.at(1)->position.at(1) = 0.55;
+				objs.at(model.group).obj.at(1)->position.at(2) = -0.61;
 			}
 
 			if (objs.at(model.group).name == "door")
