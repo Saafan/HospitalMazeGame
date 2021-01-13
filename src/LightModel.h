@@ -33,7 +33,6 @@ public:
 	GLfloat position[4]{ 0.0f, 3.0f, 0.0f, (GLfloat)spotLight };
 
 	GLfloat GroupTrans[3]{ 0.0f, 0.0f, 0.0f };
-
 	GLfloat direction[3]{ 0.0, -1.0, 0.0};
 	void SetDirection(float x, float y, float z);
 };

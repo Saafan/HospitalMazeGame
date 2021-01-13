@@ -364,6 +364,8 @@ void MouseMove()
 				model.TranslateAccum(-mouseDeltY, 0, mouseDeltX);
 		if (io.MouseDown[0] && !mouseLock)
 			firstAngle -= mouseDeltX * 10;
+		if (firstPerson)
+			cameraCenter.y -= mouseDeltY * 5;
 	}
 }
 
@@ -437,7 +439,7 @@ void RenderIMGUI()
 			if (ImGui::CollapsingHeader(std::string("Light " + std::to_string(i)).c_str()))
 			{
 				ImGui::Indent(20);
-				ImGui::DragFloat4(std::string("Light Group Position: " + std::to_string(i)).c_str(), lights.at(i).GroupTrans, 0.001f);
+				ImGui::DragFloat3(std::string("Light Group Position: " + std::to_string(i)).c_str(), lights.at(i).GroupTrans, 0.001f);
 				ImGui::SameLine();
 				if (ImGui::Button(std::string("Reset Group Position " + std::to_string(i)).c_str()))
 					lights.at(i).GroupTrans[0] = lights.at(i).GroupTrans[1] = lights.at(i).GroupTrans[2] = 0;
@@ -457,8 +459,10 @@ void RenderIMGUI()
 
 				ImGui::DragFloat3(std::string("Direction: " + std::to_string(i)).c_str(), lights.at(i).direction, 0.001f); ImGui::SameLine();
 				if (ImGui::Button(std::string("Reset Light Direction " + std::to_string(i)).c_str()))
+				{
 				lights.at(i).direction[1] = -1;
 				lights.at(i).direction[0] = lights.at(i).direction[2] = 0;
+				}
 				if (lights.at(i).spotLight)
 					ImGui::DragFloat(std::string("Cutoff Angle: " + std::to_string(i)).c_str(), &lights.at(i).angle, 0.5f);
 
@@ -1251,6 +1255,9 @@ void WriteHeader()
 	{
 		std::string lightName = "light" + std::to_string(light.lightIndex - GL_LIGHT0);
 		groupCode << "LightModel " << lightName << "(" << light.lightIndex - GL_LIGHT0 << ", " << light.angle << ");\n";
+
+
+		groupCode << lightName << ".lightIndex =" << light.lightIndex << ";\n";
 
 		if (light.position[0] != 0 || light.position[1] != 0 || light.position[2] != 0)
 			groupCode << lightName << ".SetPosition(" << light.position[0] + light.GroupTrans[0] << ", " << light.position[1] + light.GroupTrans[1] << ", " << light.position[2] + light.GroupTrans[2] << ");\n";

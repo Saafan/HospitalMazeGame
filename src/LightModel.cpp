@@ -75,7 +75,10 @@ void LightModel::Render()
 			lightToSpot[i] = lightSourcePosition.position[i] - lightSourceDirection.position[i];
 		using namespace std;
 		lightToSpotDistance = sqrt(powf(lightToSpot[0], 2) + powf(lightToSpot[1], 2) + powf(lightToSpot[2], 2));
-
+		glBegin(GL_LINE);
+		glVertex3f(lightSourcePosition.position[0], lightSourcePosition.position[1], lightSourcePosition.position[2]);
+		glVertex3f(lightSourceDirection.position[0], lightSourceDirection.position[1], lightSourceDirection.position[2]);
+		glEnd();
 	}
 
 
