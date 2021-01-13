@@ -80,6 +80,7 @@ public:
 	bool uniformScale = false;
 	bool hidden = false;
 	bool froom = true;
+
 	bool selected = false;
 	bool collider = false;
 	bool animated = false;

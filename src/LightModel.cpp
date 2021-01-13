@@ -52,6 +52,34 @@ void LightModel::SetSpecular(float x, float y, float z)
 }
 
 
+void LightModel::SetSourceAnimation(float x, float y, float z)
+{
+	animateSource[0] = x;
+	animateSource[1] = y;
+	animateSource[2] = z;
+}
+
+void LightModel::SetFactorAnimation(float x, float y, float z)
+{
+	animateFactor[0] = x;
+	animateFactor[1] = y;
+	animateFactor[2] = z;
+}
+
+void LightModel::SetAnimationRadius(float x, float y, float z)
+{
+	animRadius[0] = x;
+	animRadius[1] = y;
+	animRadius[2] = z;
+}
+
+void LightModel::SetAnimationColor(bool r, bool g, bool b)
+{
+	animColor[0] = r;
+	animColor[1] = g;
+	animColor[2] = b;
+}
+
 void LightModel::SetDirection(float x, float y, float z)
 {
 	direction[0] = x;
@@ -59,10 +87,22 @@ void LightModel::SetDirection(float x, float y, float z)
 	direction[2] = z;
 }
 
+void LightModel::AnimateLights()
+{
+	ImGuiIO& io = ImGui::GetIO();
+	animateSource[0] += animateFactor[0] * io.DeltaTime;
+	animateSource[1] += animateFactor[1] * io.DeltaTime;
+	animateSource[2] += animateFactor[2] * io.DeltaTime;
+
+}
 
 void LightModel::Render()
 {
-	glEnable(lightIndex);
+	if (enableLight)
+		glEnable(lightIndex);
+	else
+		glDisable(lightIndex);
+
 	if (viewWireBoxes)
 	{
 		lightSourcePosition.Translate(position[0] + GroupTrans[0], position[1] + GroupTrans[1], position[2] + GroupTrans[2]);
@@ -85,13 +125,17 @@ void LightModel::Render()
 
 	glLightModelfv(GL_LIGHT_MODEL_AMBIENT, modelAmbient);
 
-
+	ImGuiIO& io = ImGui::GetIO();
 	glLightf(lightIndex, GL_SPOT_CUTOFF, angle);
 
 	glLightf(lightIndex, GL_SPOT_EXPONENT, exponent);
-	float totalDirection[4] = { direction[0] + GroupTrans[0] , direction[1] + GroupTrans[1] , direction[2] + GroupTrans[2]  , 1.0f };
+	float totalDirection[3] = { direction[0] + std::sin(animateSource[0]) * animRadius[0] + GroupTrans[0] , direction[1] + std::sin(animateSource[1]) * animRadius[1] + GroupTrans[1] , direction[2] + std::sin(animateSource[2]) * animRadius[2] + GroupTrans[2] };
 	glLightfv(lightIndex, GL_SPOT_DIRECTION, totalDirection);
-	glLightfv(lightIndex, GL_DIFFUSE, diffuse);
+	for (size_t i = 0; i < 3; i++)
+		if (animColor[i])
+			animColorFactor[i] += io.DeltaTime * lightChangeSpeed;
+	float totalDiffuse[4]{ diffuse[0] + sin(animColorFactor[0]) / 2, diffuse[1] + sin(animColorFactor[1]) / 2, diffuse[2] + sin(animColorFactor[2]) / 2, diffuse[3] };
+	glLightfv(lightIndex, GL_DIFFUSE, totalDiffuse);
 	//glLightfv(lightIndex, GL_AMBIENT, ambient);
 	glLightfv(lightIndex, GL_SPECULAR, specular);
 	float totalPosition[4] = { position[0] + GroupTrans[0] , position[1] + GroupTrans[1] , position[2] + GroupTrans[2]  , spotLight };

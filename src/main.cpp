@@ -14,7 +14,6 @@
 #include "ModelsGenerator.h"
 #include "Randomize.h"
 
-#include <math.h>
 #include "UI.h"
 #include "LightModel.h"
 
@@ -233,6 +232,7 @@ void ShowModelAttributes(Model& model, std::string name)
 
 		if (ImGui::CollapsingHeader(std::string("Animate: " + name).c_str()))
 		{
+			ImGui::Indent(20);
 			ImGui::DragFloat3("Animate Pos", &model.transFactor[0], 0.0001); ImGui::SameLine();
 			if (ImGui::Button(std::string("Reset Pos" + model.id).c_str()))
 				model.transFactor[0] = model.transFactor[1] = model.transFactor[2] = 0.0f;
@@ -246,6 +246,7 @@ void ShowModelAttributes(Model& model, std::string name)
 				model.scaleFactor[0] = model.scaleFactor[1] = model.scaleFactor[2] = 0.0f;
 
 			ImGui::DragFloat("Animation Time", &model.animTime, 0.001);
+			ImGui::Unindent(20);
 		}
 
 		if (ImGui::Button(std::string("Reset Position: " + name).c_str()))
@@ -439,12 +440,15 @@ void RenderIMGUI()
 			if (ImGui::CollapsingHeader(std::string("Light " + std::to_string(i)).c_str()))
 			{
 				ImGui::Indent(20);
+				ImGui::Checkbox(std::string("First Room Light: " + std::to_string(i)).c_str(), &(lights.at(i).firstRoom));
+				ImGui::Checkbox(std::string("Enable Light: " + std::to_string(i)).c_str(), &(lights.at(i).enableLight));
 				ImGui::DragFloat3(std::string("Light Group Position: " + std::to_string(i)).c_str(), lights.at(i).GroupTrans, 0.001f);
 				ImGui::SameLine();
 				if (ImGui::Button(std::string("Reset Group Position " + std::to_string(i)).c_str()))
 					lights.at(i).GroupTrans[0] = lights.at(i).GroupTrans[1] = lights.at(i).GroupTrans[2] = 0;
 				ImGui::ColorEdit3(std::string("Light Color: " + std::to_string(i)).c_str(), lights.at(i).diffuse);
 				ImGui::DragFloat4(std::string("Light Position: " + std::to_string(i)).c_str(), lights.at(i).position, 0.001f); ImGui::SameLine();
+
 				if (ImGui::Button(std::string("Reset Light Position " + std::to_string(i)).c_str()))
 					lights.at(i).position[0] = lights.at(i).position[1] = lights.at(i).position[2] = 0;
 
@@ -456,16 +460,27 @@ void RenderIMGUI()
 
 				lights.at(i).position[3] = selectedType;
 
+				if (ImGui::CollapsingHeader(std::string("Light Animate: " + std::to_string(i)).c_str()))
+				{
+					ImGui::Indent(20);
+					ImGui::DragFloat3(std::string("Animate Factor: " + std::to_string(i)).c_str(), lights.at(i).animateFactor, 0.01f);
+					ImGui::DragFloat3(std::string("Animation Radius: " + std::to_string(i)).c_str(), lights.at(i).animRadius, 0.001f);
+					ImGui::Checkbox("Red Animation: ", &(lights.at(i).animColor[0])); ImGui::SameLine();
+					ImGui::Checkbox("Green Animation: ", &(lights.at(i).animColor[1])); ImGui::SameLine();
+					ImGui::Checkbox("Blue Animation: ", &(lights.at(i).animColor[2]));
+					ImGui::DragFloat(std::string("Color Changing Speed: " + std::to_string(i)).c_str(), &(lights.at(i).lightChangeSpeed), 0.01f);
+					ImGui::Unindent(20);
+				}
 
 				ImGui::DragFloat3(std::string("Direction: " + std::to_string(i)).c_str(), lights.at(i).direction, 0.001f); ImGui::SameLine();
 				if (ImGui::Button(std::string("Reset Light Direction " + std::to_string(i)).c_str()))
 				{
-				lights.at(i).direction[1] = -1;
-				lights.at(i).direction[0] = lights.at(i).direction[2] = 0;
+					lights.at(i).direction[1] = -1;
+					lights.at(i).direction[0] = lights.at(i).direction[2] = 0;
 				}
+
 				if (lights.at(i).spotLight)
 					ImGui::DragFloat(std::string("Cutoff Angle: " + std::to_string(i)).c_str(), &lights.at(i).angle, 0.5f);
-
 
 				if (ImGui::Button(std::string("Duplicate Light: " + std::to_string(i)).c_str()))
 				{
@@ -764,7 +779,8 @@ void RenderScene(void)
 				model.Animate();
 		model.Render();
 	}
-
+	for (auto& light : lights)
+		light.AnimateLights();
 
 	if (won)
 		msgStr = "HEALTH =100%, CONGRATULATIONS YOU SAVED HIM!";
@@ -776,8 +792,8 @@ void RenderScene(void)
 
 	for (auto& model : models)
 		model.Render();
-	RenderUI();
 
+	RenderUI();
 	RenderIMGUI();
 }
 
@@ -1081,6 +1097,9 @@ bool CheckHidCollision()
 					if ((objs.at(model.group).name != "Character"))
 					{
 						model.hidden = !model.hidden;
+						for (auto& light : lights)
+							light.enableLight = !light.enableLight;
+						
 						firstTime = true;
 					}
 
@@ -1259,20 +1278,37 @@ void WriteHeader()
 
 		groupCode << lightName << ".lightIndex =" << light.lightIndex << ";\n";
 
+		groupCode << lightName << ".lightIndex =" << light.lightIndex << ";\n";
+
 		if (light.position[0] != 0 || light.position[1] != 0 || light.position[2] != 0)
 			groupCode << lightName << ".SetPosition(" << light.position[0] + light.GroupTrans[0] << ", " << light.position[1] + light.GroupTrans[1] << ", " << light.position[2] + light.GroupTrans[2] << ");\n";
-#include "Model.h"
-		if (light.ambient[0] != 0 || light.ambient[1] != 0 || light.ambient[2] != 0)
+
+		if (light.ambient[0] != 0.1f || light.ambient[1] != 0.1f || light.ambient[2] != 0.1f)
 			groupCode << lightName << ".SetAmbient(" << light.ambient[0] << ", " << light.ambient[1] << ", " << light.ambient[2] << ");\n";
 
-		if (light.diffuse[0] != 0 || light.diffuse[1] != 0 || light.diffuse[2] != 0)
+		if (light.diffuse[0] != 0.8f || light.diffuse[1] != 0.8f || light.diffuse[2] != 0.8f)
 			groupCode << lightName << ".SetDiffuse(" << light.diffuse[0] << ", " << light.diffuse[1] << ", " << light.diffuse[2] << ");\n";
 
-		if (light.direction[0] != 0 || light.direction[1] != 0 || light.direction[2] != 0)
+		if (light.direction[0] != 0 || light.direction[1] != -1.0f || light.direction[2] != 0)
 			groupCode << lightName << ".SetDirection(" << light.direction[0] + light.GroupTrans[0] << ", " << light.direction[1] + light.GroupTrans[1] << ", " << light.direction[2] + light.GroupTrans[2] << ");\n";
 
 		if (!light.spotLight)
-			groupCode << lightName << ".spotLight = false);\n";
+			groupCode << lightName << ".spotLight = false;\n";
+
+		if (light.animateFactor[0] != 0 || light.animateFactor[1] != 0 || light.animateFactor[2] != 0)
+			groupCode << lightName << ".SetFactorAnimation(" << light.animateFactor[0] << ", " << light.animateFactor[1] << ", " << light.animateFactor[2] << ");\n";
+
+		if (light.animRadius[0] != 0.085f || light.animRadius[1] != 0.085f || light.animRadius[2] != 0.085f)
+			groupCode << lightName << ".SetAnimationRadius(" << light.animRadius[0] << ", " << light.animRadius[1] << ", " << light.animRadius[2] << ");\n";
+
+		if (light.animColor[0] || light.animColor[1] || light.animColor[2])
+			groupCode << std::boolalpha << lightName << ".SetAnimationColor(" << light.animColor[0] << ", " << light.animColor[0] << ", " << light.animColor[0] << ");\n";
+
+		if (light.lightChangeSpeed != 1.0f)
+			groupCode << lightName << ".lightChangeSpeed =" << light.lightChangeSpeed << ";\n";
+
+		if (!light.firstRoom)
+			groupCode << lightName << ".firstRoom =" << std::boolalpha << light.firstRoom << ";\n";
 
 		groupCode << "lights.push_back(" << lightName << ");\n";
 		groupCode << "\n";
@@ -1425,7 +1461,7 @@ int main(int argc, char** argv)
 	glutInitWindowPosition(100, 100);
 	glutInitWindowSize(WIDTH, HEIGHT);
 
-	glutCreateWindow("Garden Game");
+	glutCreateWindow("Hospital Game");
 
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glEnable(GL_BLEND);
@@ -1504,6 +1540,10 @@ int main(int argc, char** argv)
 			model.hidden = true;
 		}
 	}
+
+	for (auto& light : lights)
+		if (light.firstRoom)
+			light.enableLight = true;
 
 
 	glEnable(GL_DEPTH_TEST);
