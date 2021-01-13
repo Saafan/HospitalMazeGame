@@ -808,7 +808,7 @@ void RenderScene(void)
 	HEIGHT = glutGet(GLUT_WINDOW_HEIGHT);
 	glViewport(0, 0, WIDTH, HEIGHT);
 
-//	RenderIMGUI();
+	RenderIMGUI();
 }
 
 bool ModelsIntresect(Model& model1, Model& model2, float x, float z)
