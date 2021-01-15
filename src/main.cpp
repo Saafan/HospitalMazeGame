@@ -31,7 +31,7 @@ Model sphere;
 std::vector<bool> views{ true, false, false };
 
 bool backup = false;
-bool updateData = true;
+bool updateData = false;
 
 Model* lastHit = nullptr;
 vec3 cameraPos;
@@ -116,7 +116,7 @@ void SetupCamera()
 	{
 		firstCenter.x = -std::cos(firstAngle * 3.14f / 180.0f) * 10;
 		firstCenter.z = std::sin(firstAngle * 3.14f / 180.0f) * 10;
-		gluLookAt(cameraPos.x, cameraPos.y + 0.6f, cameraPos.z, cameraPos.x + firstCenter.x, cameraCenter.y + firstCenter.y, cameraPos.z + firstCenter.z, 0.0f, 1.0f, 0.0f);
+		gluLookAt(cameraPos.x, cameraPos.y + 0.8f, cameraPos.z, cameraPos.x + firstCenter.x, cameraCenter.y + firstCenter.y, cameraPos.z + firstCenter.z, 0.0f, 1.0f, 0.0f);
 	}
 	else
 	{
@@ -790,6 +790,7 @@ void RenderScene(void)
 		msgStr = "HEALTH =100%, CONGRATULATIONS YOU SAVED HIM!";
 	}
 	if (!won && over) {
+		msg.SetColor(0.8f, 0.0f, 0.0f);
 		msgStr = "HEALTH IS UP,GAME OVER";
 
 	}
@@ -1466,7 +1467,7 @@ void Timer2(int value) {
 
 	}
 
-	glutTimerFunc(2000, Timer2, 2000);
+	glutTimerFunc(1500, Timer2, 1500);
 }
 
 
@@ -1513,6 +1514,8 @@ int main(int argc, char** argv)
 	glutKeyboardFunc(key);
 	glutSpecialFunc(key);
 	Generate(100);
+
+	glutFullScreen();
 
 	glutTimerFunc(10, HistoryTimer, 10);
 	SortObjects();

@@ -274,8 +274,6 @@ void Model::Animate()
 	static float timeSum = 0;
 	timeSum += io.DeltaTime;
 
-	std::cout << timeSum << std::endl;
-
 	if (timeSum < animTime)
 		for (size_t i = 0; i < 3; i++)
 		{

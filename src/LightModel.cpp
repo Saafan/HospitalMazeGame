@@ -43,7 +43,7 @@ void LightModel::SetDiffuse(float x, float y, float z)
 	diffuse[0] = x;
 	diffuse[1] = y;
 	diffuse[2] = z;
-	diffuse[3] = 0.0f;
+	diffuse[3] = 1.0f;
 	glLightfv(lightIndex, GL_DIFFUSE, diffuse);
 }
 
